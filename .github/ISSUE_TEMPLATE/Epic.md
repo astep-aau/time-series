@@ -2,7 +2,7 @@
 name: Epic
 about: A long term goal that spans more than a single sprint
 title: 'A short summary'
-labels: 'Epic'
+type: 'Epic'
 assignees: ''
 
 ---
