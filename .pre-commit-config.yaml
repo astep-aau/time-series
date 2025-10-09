@@ -30,6 +30,7 @@ repos:
         entry: poly check
         language: system
         types: [python]
+        pass_filenames: false
 
       - id: mypy
         name: mypy

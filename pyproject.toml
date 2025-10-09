@@ -59,6 +59,7 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 [tool.polylith.bricks]
 "bases/time_series/rest_api" = "time_series/rest_api"
 "components/time_series/greeting" = "time_series/greeting"
+"components/time_series/model" = "time_series/model"
 
 [tool.ruff]
 exclude = [
