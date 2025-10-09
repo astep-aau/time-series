@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+uvicorn --reload time_series.rest_api.main:app
