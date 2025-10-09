@@ -30,6 +30,7 @@ build-backend = "hatchling.build"
 dev = [
     "editorconfig-checker>=3.4.0",
     "hatch>=1.14.2",
+    "ipython>=9.6.0",
     "mypy>=1.18.2",
     "poethepoet>=0.37.0",
     "polylith-cli>=1.35.0",
@@ -39,6 +40,7 @@ dev = [
 ]
 
 [tool.poe.tasks]
+console = "ipython"
 setup = [{ shell = "uv sync" }, {shell="pre-commit install"}]
 format = "ruff format ."
 lint = "ruff check --fix ."
