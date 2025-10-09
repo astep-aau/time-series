@@ -1,0 +1,48 @@
+# See https://pre-commit.com for more information
+default_language_version:
+  python: python3
+fail_fast: false
+
+repos:
+  - repo: local
+    hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format
+        language: system
+        types: [python]
+
+      - id: ruff-lint
+        name: ruff lint
+        entry: ruff check
+        language: system
+        types: [python]
+        args: [--fix]
+
+      - id: editorconfig-checker
+        name: editorconfig-checker
+        entry: ec
+        language: system
+        types: [text]
+
+      - id: poly-check
+        name: poly-check
+        entry: poly check
+        language: system
+        types: [python]
+
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types: [python]
+        stages: [pre-push]
+
+      - id: pytest
+        name: pytest
+        entry: pytest
+        language: system
+        types: [python]
+        pass_filenames: false
+        args: [test]
+        stages: [pre-push]

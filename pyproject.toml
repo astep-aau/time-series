@@ -28,21 +28,25 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "editorconfig-checker>=3.4.0",
     "hatch>=1.14.2",
     "mypy>=1.18.2",
     "poethepoet>=0.37.0",
     "polylith-cli>=1.35.0",
+    "pre-commit>=4.3.0",
     "pytest>=8.4.2",
     "ruff>=0.13.3",
 ]
 
 [tool.poe.tasks]
+setup = [{ shell = "uv sync" }, {shell="pre-commit install"}]
 format = "ruff format ."
 lint = "ruff check --fix ."
+editorcheck = "ec"
 polycheck = "poly check"
 typecheck = "mypy ."
 test = "pytest test"
-all = [{ref="format"}, {ref="lint"}, {ref="polycheck"}, {ref="typecheck"}, {ref="test"}]
+all = [{ref="format"}, {ref="lint"}, {ref="editorcheck"}, {ref="polycheck"}, {ref="typecheck"}, {ref="test"}]
 
 rest_api = "poe -C projects/rest_api"
 

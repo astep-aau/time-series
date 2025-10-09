@@ -14,6 +14,9 @@ dev = [
 ]
 
 [tool.poe.tasks]
+container-build = "podman build -t rest_api:latest -f Containerfile ../.."
+container-run = "podman run -it --name rest_api rest_api:latest -p 8000:8000"
+
 serve = "uvicorn --reload time_series.rest_api.main:app"
 
 [build-system]
@@ -30,3 +33,4 @@ build-backend = "hatchling.build"
 [tool.polylith.bricks]
 "../../bases/time_series/rest_api" = "time_series/rest_api"
 "../../components/time_series/greeting" = "time_series/greeting"
+"../../components/time_series/model" = "time_series/model"
