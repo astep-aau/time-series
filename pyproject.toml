@@ -41,7 +41,7 @@ format = "ruff format ."
 lint = "ruff check --fix ."
 polycheck = "poly check"
 typecheck = "mypy ."
-test = "pytest tests"
+test = "pytest test"
 all = [{ref="format"}, {ref="lint"}, {ref="polycheck"}, {ref="typecheck"}, {ref="test"}]
 
 rest_api = "poe -C projects/rest_api"
