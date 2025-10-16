@@ -3,7 +3,7 @@ name = "time-series"
 version = "0.1.0"
 description = "Time-series supergroup"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12.0, <3.13"
 license = "MIT"
 dependencies = [
     "fastapi>=0.118.0",
