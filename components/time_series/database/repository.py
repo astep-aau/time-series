@@ -10,39 +10,32 @@ from .models import Datapoint, Dataset
 class DatasetRepository:
     """Repository for dataset operations"""
 
-    @staticmethod
-    def create(name: str, start_date: datetime, description: Optional[str] = None, engine=None) -> Dataset:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def __init__(self, engine=None):
+        self.engine = engine or default_engine
+
+    def create(self, name: str, start_date: datetime, description: Optional[str] = None) -> Dataset:
+        with Session(self.engine) as session:
             dataset = Dataset(name=name, start_date=start_date, description=description)
             session.add(dataset)
             session.commit()
             session.refresh(dataset)
             return dataset
 
-    @staticmethod
-    def get_all(engine=None) -> List[Dataset]:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def get_all(self) -> List[Dataset]:
+        with Session(self.engine) as session:
             return list(session.exec(select(Dataset)).all())
 
-    @staticmethod
-    def get_by_id(dataset_id: int, engine=None) -> Optional[Dataset]:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def get_by_id(self, dataset_id: int) -> Optional[Dataset]:
+        with Session(self.engine) as session:
             return session.get(Dataset, dataset_id)
 
-    @staticmethod
-    def get_by_name(name: str, engine=None) -> Optional[Dataset]:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def get_by_name(self, name: str) -> Optional[Dataset]:
+        with Session(self.engine) as session:
             statement = select(Dataset).where(Dataset.name == name)
             return session.exec(statement).first()
 
-    @staticmethod
-    def update(dataset_id: int, engine=None, **kwargs) -> Optional[Dataset]:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def update(self, dataset_id: int, **kwargs) -> Optional[Dataset]:
+        with Session(self.engine) as session:
             dataset = session.get(Dataset, dataset_id)
             if dataset:
                 for key, value in kwargs.items():
@@ -52,10 +45,8 @@ class DatasetRepository:
                 session.refresh(dataset)
             return dataset
 
-    @staticmethod
-    def delete(dataset_id: int, engine=None) -> bool:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def delete(self, dataset_id: int) -> bool:
+        with Session(self.engine) as session:
             dataset = session.get(Dataset, dataset_id)
             if dataset:
                 session.delete(dataset)
@@ -67,38 +58,33 @@ class DatasetRepository:
 class DatapointRepository:
     """Repository for datapoint operations"""
 
-    @staticmethod
-    def create(dataset_id: int, time: datetime, value: float, engine=None) -> Datapoint:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def __init__(self, engine=None):
+        self.engine = engine or default_engine
+
+    def create(self, dataset_id: int, time: datetime, value: float) -> Datapoint:
+        with Session(self.engine) as session:
             datapoint = Datapoint(dataset_id=dataset_id, time=time, value=value)
             session.add(datapoint)
             session.commit()
             session.refresh(datapoint)
             return datapoint
 
-    @staticmethod
-    def bulk_create(datapoints: List[dict], engine=None) -> int:
+    def bulk_create(self, datapoints: List[dict]) -> int:
         """Create multiple datapoints at once"""
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+        with Session(self.engine) as session:
             for dp_data in datapoints:
                 datapoint = Datapoint(**dp_data)
                 session.add(datapoint)
             session.commit()
             return len(datapoints)
 
-    @staticmethod
-    def get_by_dataset(dataset_id: int, engine=None) -> List[Datapoint]:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def get_by_dataset(self, dataset_id: int) -> List[Datapoint]:
+        with Session(self.engine) as session:
             statement = select(Datapoint).where(Datapoint.dataset_id == dataset_id).order_by(col(Datapoint.time))
             return list(session.exec(statement).all())
 
-    @staticmethod
-    def get_range(dataset_id: int, start_time: datetime, end_time: datetime, engine=None) -> List[Datapoint]:
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+    def get_range(self, dataset_id: int, start_time: datetime, end_time: datetime) -> List[Datapoint]:
+        with Session(self.engine) as session:
             statement = (
                 select(Datapoint)
                 .where(Datapoint.dataset_id == dataset_id, Datapoint.time >= start_time, Datapoint.time <= end_time)
@@ -106,11 +92,9 @@ class DatapointRepository:
             )
             return list(session.exec(statement).all())
 
-    @staticmethod
-    def delete_before(dataset_id: int, cutoff_time: datetime, engine=None) -> int:
+    def delete_before(self, dataset_id: int, cutoff_time: datetime) -> int:
         """Delete datapoints before cutoff_time"""
-        _engine = engine or default_engine
-        with Session(_engine) as session:
+        with Session(self.engine) as session:
             statement = select(Datapoint).where(Datapoint.dataset_id == dataset_id, Datapoint.time < cutoff_time)
             datapoints = session.exec(statement).all()
             count = len(datapoints)
