@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from .engine import engine as default_engine
 from .models import Datapoint, Dataset
@@ -92,7 +92,7 @@ class DatapointService:
     def get_by_dataset(dataset_id: int, engine=None) -> List[Datapoint]:
         _engine = engine or default_engine
         with Session(_engine) as session:
-            statement = select(Datapoint).where(Datapoint.dataset_id == dataset_id).order_by(Datapoint.time)  # type: ignore[arg-type]
+            statement = select(Datapoint).where(Datapoint.dataset_id == dataset_id).order_by(col(Datapoint.time))
             return list(session.exec(statement).all())
 
     @staticmethod
@@ -102,7 +102,7 @@ class DatapointService:
             statement = (
                 select(Datapoint)
                 .where(Datapoint.dataset_id == dataset_id, Datapoint.time >= start_time, Datapoint.time <= end_time)
-                .order_by(Datapoint.time)  # type: ignore[arg-type]
+                .order_by(col(Datapoint.time))
             )
             return list(session.exec(statement).all())
 
