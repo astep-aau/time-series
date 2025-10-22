@@ -10,6 +10,7 @@ dependencies = [
     "fastapi>=0.118.0",
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.11.10",
+    "pytest>=8.4.2",
     "sqlmodel>=0.0.25",
     "uvicorn>=0.37.0",
 ]
@@ -87,6 +88,10 @@ mypy_path = "components, bases"
 namespace_packages = true
 explicit_package_bases = true
 plugins = "pydantic.mypy"
+exclude = [
+    "^alembic/",
+    "^env\\.py$",
+]
 
 #[[tool.mypy.overrides]]
 #module = "bad_dependency_here"

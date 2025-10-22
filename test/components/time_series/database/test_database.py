@@ -1,266 +1,203 @@
 """
-Tests for database services
-Run with: uv run development/test_database.py
+Tests for database services using pytest and SQLite
+Run with: uv run pytest test/components/time_series/database/test_database.py
 """
 
 from datetime import datetime, timedelta
 
-from sqlmodel import SQLModel
+import pytest
+from sqlmodel import SQLModel, create_engine
+from time_series.database import DatapointService, DatasetService
 
-from components.time_series.database.engine import engine
-from components.time_series.database.service import DatapointService, DatasetService
 
-
-def setup_test_db():
-    """Create all tables for testing"""
+@pytest.fixture(scope="function")
+def test_engine():
+    engine = create_engine("sqlite:///:memory:", echo=False)
     SQLModel.metadata.create_all(engine)
-    print("✓ Database tables created")
+    yield engine
+    engine.dispose()
 
 
-def test_create_dataset():
-    """Test creating a dataset"""
-    print("\n=== Test: Create Dataset ===")
-
+@pytest.fixture
+def sample_dataset(test_engine):
+    """Create a sample dataset for testing"""
     dataset = DatasetService.create(
         name=f"Test Dataset {datetime.now().timestamp()}",
         start_date=datetime.now(),
-        description="This is a test dataset",
+        description="Test dataset",
+        engine=test_engine,
     )
-
-    assert dataset.id is not None, "Dataset should have an ID"
-    assert dataset.name is not None, "Dataset should have a name"
-    print(f"✓ Created dataset: {dataset.name} (ID: {dataset.id})")
-    return dataset
+    yield dataset
 
 
-def test_get_all_datasets():
-    """Test retrieving all datasets"""
-    print("\n=== Test: Get All Datasets ===")
-
-    datasets = DatasetService.get_all()
-
-    assert isinstance(datasets, list), "Should return a list"
-    print(f"✓ Found {len(datasets)} dataset(s)")
-
-    for ds in datasets:
-        print(f"  - {ds.name} (ID: {ds.id})")
-
-    return datasets
-
-
-def test_get_dataset_by_id(dataset_id: int):
-    """Test retrieving a dataset by ID"""
-    print("\n=== Test: Get Dataset by ID ===")
-
-    dataset = DatasetService.get_by_id(dataset_id)
-
-    assert dataset is not None, f"Dataset with ID {dataset_id} should exist"
-    assert dataset.id == dataset_id, "Dataset ID should match"
-    print(f"✓ Retrieved dataset: {dataset.name}")
-    return dataset
-
-
-def test_get_dataset_by_name(name: str):
-    """Test retrieving a dataset by name"""
-    print("\n=== Test: Get Dataset by Name ===")
-
-    dataset = DatasetService.get_by_name(name)
-
-    assert dataset is not None, f"Dataset with name '{name}' should exist"
-    assert dataset.name == name, "Dataset name should match"
-    print(f"✓ Retrieved dataset: {dataset.name} (ID: {dataset.id})")
-    return dataset
-
-
-def test_update_dataset(dataset_id: int):
-    """Test updating a dataset"""
-    print("\n=== Test: Update Dataset ===")
-
-    new_description = f"Updated at {datetime.now()}"
-    updated_dataset = DatasetService.update(dataset_id, description=new_description)
-
-    assert updated_dataset is not None, "Update should return the dataset"
-    assert updated_dataset.description == new_description, "Description should be updated"
-    print(f"✓ Updated dataset {dataset_id}")
-    print(f"  New description: {updated_dataset.description}")
-    return updated_dataset
-
-
-def test_create_datapoint(dataset_id: int):
-    """Test creating a single datapoint"""
-    print("\n=== Test: Create Datapoint ===")
-
-    datapoint = DatapointService.create(dataset_id=dataset_id, time=datetime.now(), value=25.5)
-
-    assert datapoint.dataset_id == dataset_id, "Datapoint should belong to dataset"
-    assert datapoint.value == 25.5, "Datapoint value should match"
-    print(f"✓ Created datapoint: {datapoint.time} = {datapoint.value}")
-    return datapoint
-
-
-def test_bulk_create_datapoints(dataset_id: int):
-    """Test creating multiple datapoints"""
-    print("\n=== Test: Bulk Create Datapoints ===")
-
-    base_time = datetime.now()
+@pytest.fixture
+def dataset_with_datapoints(sample_dataset, test_engine):
+    """Create a dataset with sample datapoints"""
+    base_time = datetime(2024, 1, 1, 12, 0, 0)
     datapoints = [
-        {"dataset_id": dataset_id, "time": base_time + timedelta(minutes=i), "value": 20.0 + (i * 0.5)}
+        {"dataset_id": sample_dataset.id, "time": base_time + timedelta(minutes=i), "value": 20.0 + (i * 0.5)}
         for i in range(10)
     ]
-
-    count = DatapointService.bulk_create(datapoints)
-
-    assert count == 10, "Should create 10 datapoints"
-    print(f"✓ Created {count} datapoints")
-    return count
+    DatapointService.bulk_create(datapoints, engine=test_engine)
+    yield sample_dataset
 
 
-def test_get_datapoints_by_dataset(dataset_id: int):
-    """Test retrieving all datapoints for a dataset"""
-    print("\n=== Test: Get Datapoints by Dataset ===")
+class TestDatasetService:
+    """Tests for DatasetService"""
 
-    datapoints = DatapointService.get_by_dataset(dataset_id)
+    def test_create_dataset(self, test_engine):
+        """Test creating a dataset"""
+        dataset = DatasetService.create(
+            name=f"Test Dataset {datetime.now().timestamp()}",
+            start_date=datetime.now(),
+            description="This is a test dataset",
+            engine=test_engine,
+        )
 
-    assert isinstance(datapoints, list), "Should return a list"
-    print(f"✓ Found {len(datapoints)} datapoint(s)")
+        assert dataset.id is not None
+        assert dataset.name is not None
+        assert dataset.description == "This is a test dataset"
 
-    for dp in datapoints[:5]:  # Show first 5
-        print(f"  - {dp.time}: {dp.value}")
+    def test_get_all_datasets(self, sample_dataset, test_engine):
+        """Test retrieving all datasets"""
+        datasets = DatasetService.get_all(engine=test_engine)
 
-    if len(datapoints) > 5:
-        print(f"  ... and {len(datapoints) - 5} more")
+        assert isinstance(datasets, list)
+        assert len(datasets) >= 1
+        assert any(ds.id == sample_dataset.id for ds in datasets)
 
-    return datapoints
+    def test_get_dataset_by_id(self, sample_dataset, test_engine):
+        """Test retrieving a dataset by ID"""
+        dataset = DatasetService.get_by_id(sample_dataset.id, engine=test_engine)
 
+        assert dataset is not None
+        assert dataset.id == sample_dataset.id
+        assert dataset.name == sample_dataset.name
 
-def test_get_datapoints_range(dataset_id: int):
-    """Test retrieving datapoints within a time range"""
-    print("\n=== Test: Get Datapoints by Time Range ===")
+    def test_get_dataset_by_name(self, sample_dataset, test_engine):
+        """Test retrieving a dataset by name"""
+        dataset = DatasetService.get_by_name(sample_dataset.name, engine=test_engine)
 
-    now = datetime.now()
-    start_time = now - timedelta(minutes=5)
-    end_time = now + timedelta(minutes=5)
+        assert dataset is not None
+        assert dataset.id == sample_dataset.id
+        assert dataset.name == sample_dataset.name
 
-    datapoints = DatapointService.get_range(dataset_id=dataset_id, start_time=start_time, end_time=end_time)
+    def test_update_dataset(self, sample_dataset, test_engine):
+        """Test updating a dataset"""
+        new_description = f"Updated at {datetime.now()}"
+        updated_dataset = DatasetService.update(sample_dataset.id, engine=test_engine, description=new_description)
 
-    assert isinstance(datapoints, list), "Should return a list"
-    print(f"✓ Found {len(datapoints)} datapoint(s) in range")
-    print(f"  Range: {start_time} to {end_time}")
+        assert updated_dataset is not None
+        assert updated_dataset.description == new_description
 
-    for dp in datapoints[:3]:
-        print(f"  - {dp.time}: {dp.value}")
+    def test_delete_dataset(self, sample_dataset, test_engine):
+        """Test deleting a dataset"""
+        dataset_id = sample_dataset.id
+        success = DatasetService.delete(dataset_id, engine=test_engine)
 
-    return datapoints
+        assert success is True
+        assert DatasetService.get_by_id(dataset_id, engine=test_engine) is None
 
-
-def test_delete_old_datapoints(dataset_id: int):
-    """Test deleting old datapoints"""
-    print("\n=== Test: Delete Old Datapoints ===")
-
-    # Get count before deletion
-    before_count = len(DatapointService.get_by_dataset(dataset_id))
-
-    # Delete datapoints older than 3 minutes ago
-    cutoff_time = datetime.now() - timedelta(minutes=3)
-    deleted_count = DatapointService.delete_before(dataset_id, cutoff_time)
-
-    # Get count after deletion
-    after_count = len(DatapointService.get_by_dataset(dataset_id))
-
-    print(f"✓ Deleted {deleted_count} datapoint(s)")
-    print(f"  Before: {before_count}, After: {after_count}")
-
-    assert after_count == before_count - deleted_count, "Count should match deletion"
-    return deleted_count
-
-
-def test_delete_dataset(dataset_id: int):
-    """Test deleting a dataset"""
-    print("\n=== Test: Delete Dataset ===")
-
-    success = DatasetService.delete(dataset_id)
-
-    assert success is True, "Deletion should succeed"
-
-    # Verify it's deleted
-    deleted_dataset = DatasetService.get_by_id(dataset_id)
-    assert deleted_dataset is None, "Dataset should no longer exist"
-
-    print(f"✓ Deleted dataset {dataset_id}")
-    return success
+    def test_get_nonexistent_dataset(self, test_engine):
+        """Test getting a dataset that doesn't exist"""
+        dataset = DatasetService.get_by_id(99999, engine=test_engine)
+        assert dataset is None
 
 
-def test_cascade_delete():
-    """Test that deleting a dataset cascades to datapoints"""
-    print("\n=== Test: Cascade Delete ===")
+class TestDatapointService:
+    """Tests for DatapointService"""
 
-    # Create a dataset
-    dataset = DatasetService.create(
-        name=f"Cascade Test {datetime.now().timestamp()}",
-        start_date=datetime.now(),
-        description="Testing cascade delete",
-    )
+    def test_create_datapoint(self, sample_dataset, test_engine):
+        """Test creating a single datapoint"""
+        now = datetime.now()
+        datapoint = DatapointService.create(dataset_id=sample_dataset.id, time=now, value=25.5, engine=test_engine)
 
-    # Add some datapoints
-    DatapointService.bulk_create(
-        [{"dataset_id": dataset.id, "time": datetime.now() + timedelta(minutes=i), "value": float(i)} for i in range(5)]
-    )
+        assert datapoint.dataset_id == sample_dataset.id
+        assert datapoint.value == 25.5
+        assert datapoint.time == now
 
-    # Verify datapoints exist
-    datapoints_before = DatapointService.get_by_dataset(dataset.id)
-    assert len(datapoints_before) == 5, "Should have 5 datapoints"
+    def test_bulk_create_datapoints(self, sample_dataset, test_engine):
+        """Test creating multiple datapoints"""
+        base_time = datetime(2024, 1, 1, 12, 0, 0)
+        datapoints = [
+            {"dataset_id": sample_dataset.id, "time": base_time + timedelta(minutes=i), "value": 20.0 + (i * 0.5)}
+            for i in range(10)
+        ]
 
-    # Delete the dataset
-    DatasetService.delete(dataset.id)
+        count = DatapointService.bulk_create(datapoints, engine=test_engine)
+        assert count == 10
 
-    # Verify datapoints are also deleted (cascade)
-    datapoints_after = DatapointService.get_by_dataset(dataset.id)
-    assert len(datapoints_after) == 0, "Datapoints should be cascade deleted"
+    def test_get_datapoints_by_dataset(self, dataset_with_datapoints, test_engine):
+        """Test retrieving all datapoints for a dataset"""
+        datapoints = DatapointService.get_by_dataset(dataset_with_datapoints.id, engine=test_engine)
 
-    print(f"✓ Cascade delete working: {len(datapoints_before)} datapoints deleted with dataset")
+        assert isinstance(datapoints, list)
+        assert len(datapoints) == 10
 
+    def test_get_datapoints_range(self, dataset_with_datapoints, test_engine):
+        """Test retrieving datapoints within a time range"""
+        base_time = datetime(2024, 1, 1, 12, 0, 0)
+        start_time = base_time + timedelta(minutes=2)
+        end_time = base_time + timedelta(minutes=7)
 
-def run_all_tests():
-    """Run all tests in sequence"""
-    print("\n" + "=" * 50)
-    print("RUNNING DATABASE SERVICE TESTS")
-    print("=" * 50)
+        datapoints = DatapointService.get_range(
+            dataset_id=dataset_with_datapoints.id, start_time=start_time, end_time=end_time, engine=test_engine
+        )
 
-    try:
-        # Setup
-        setup_test_db()
+        assert isinstance(datapoints, list)
+        assert len(datapoints) == 6  # Minutes 2, 3, 4, 5, 6, 7
+        # Verify all datapoints are in the range
+        for dp in datapoints:
+            assert start_time <= dp.time <= end_time
 
-        # Test dataset operations
-        dataset = test_create_dataset()
-        test_get_all_datasets()
-        test_get_dataset_by_id(dataset.id)
-        test_get_dataset_by_name(dataset.name)
-        test_update_dataset(dataset.id)
+    def test_delete_old_datapoints(self, dataset_with_datapoints, test_engine):
+        """Test deleting old datapoints"""
+        before_count = len(DatapointService.get_by_dataset(dataset_with_datapoints.id, engine=test_engine))
 
-        # Test datapoint operations
-        test_create_datapoint(dataset.id)
-        test_bulk_create_datapoints(dataset.id)
-        test_get_datapoints_by_dataset(dataset.id)
-        test_get_datapoints_range(dataset.id)
-        test_delete_old_datapoints(dataset.id)
+        # Delete datapoints older than 5 minutes from base time
+        base_time = datetime(2024, 1, 1, 12, 0, 0)
+        cutoff_time = base_time + timedelta(minutes=5)
+        deleted_count = DatapointService.delete_before(dataset_with_datapoints.id, cutoff_time, engine=test_engine)
 
-        # Test cascade delete
-        test_cascade_delete()
+        after_count = len(DatapointService.get_by_dataset(dataset_with_datapoints.id, engine=test_engine))
+        assert after_count == before_count - deleted_count
+        assert deleted_count == 5  # Should delete datapoints 0-4
 
-        # Cleanup - delete the test dataset
-        test_delete_dataset(dataset.id)
+    def test_datapoints_ordered_by_time(self, dataset_with_datapoints, test_engine):
+        """Test that datapoints are returned in time order"""
+        datapoints = DatapointService.get_by_dataset(dataset_with_datapoints.id, engine=test_engine)
 
-        print("\n" + "=" * 50)
-        print("✓ ALL TESTS PASSED!")
-        print("=" * 50)
-
-    except AssertionError as e:
-        print(f"\n✗ TEST FAILED: {e}")
-        raise
-    except Exception as e:
-        print(f"\n✗ ERROR: {e}")
-        raise
+        times = [dp.time for dp in datapoints]
+        assert times == sorted(times), "Datapoints should be ordered by time"
 
 
-if __name__ == "__main__":
-    run_all_tests()
+class TestCascadeDelete:
+    """Tests for cascade delete behavior"""
+
+    def test_cascade_delete(self, test_engine):
+        """Test that deleting a dataset cascades to datapoints"""
+        # Create a dataset
+        dataset = DatasetService.create(
+            name=f"Cascade Test {datetime.now().timestamp()}",
+            start_date=datetime.now(),
+            description="Testing cascade delete",
+            engine=test_engine,
+        )
+
+        # Add some datapoints
+        base_time = datetime(2024, 1, 1, 12, 0, 0)
+        DatapointService.bulk_create(
+            [{"dataset_id": dataset.id, "time": base_time + timedelta(minutes=i), "value": float(i)} for i in range(5)],
+            engine=test_engine,
+        )
+
+        # Verify datapoints exist
+        datapoints_before = DatapointService.get_by_dataset(dataset.id, engine=test_engine)
+        assert len(datapoints_before) == 5
+
+        # Delete the dataset
+        DatasetService.delete(dataset.id, engine=test_engine)
+
+        # Verify datapoints are also deleted (cascade)
+        datapoints_after = DatapointService.get_by_dataset(dataset.id, engine=test_engine)
+        assert len(datapoints_after) == 0

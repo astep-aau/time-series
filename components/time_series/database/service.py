@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from sqlmodel import Session, select
 
-from .engine import engine
+from .engine import engine as default_engine
 from .models import Datapoint, Dataset
 
 
@@ -11,8 +11,9 @@ class DatasetService:
     """Service for dataset operations"""
 
     @staticmethod
-    def create(name: str, start_date: datetime, description: Optional[str] = None) -> Dataset:
-        with Session(engine) as session:
+    def create(name: str, start_date: datetime, description: Optional[str] = None, engine=None) -> Dataset:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             dataset = Dataset(name=name, start_date=start_date, description=description)
             session.add(dataset)
             session.commit()
@@ -20,24 +21,28 @@ class DatasetService:
             return dataset
 
     @staticmethod
-    def get_all() -> List[Dataset]:
-        with Session(engine) as session:
-            return session.exec(select(Dataset)).all()
+    def get_all(engine=None) -> List[Dataset]:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
+            return list(session.exec(select(Dataset)).all())
 
     @staticmethod
-    def get_by_id(dataset_id: int) -> Optional[Dataset]:
-        with Session(engine) as session:
+    def get_by_id(dataset_id: int, engine=None) -> Optional[Dataset]:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             return session.get(Dataset, dataset_id)
 
     @staticmethod
-    def get_by_name(name: str) -> Optional[Dataset]:
-        with Session(engine) as session:
+    def get_by_name(name: str, engine=None) -> Optional[Dataset]:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             statement = select(Dataset).where(Dataset.name == name)
             return session.exec(statement).first()
 
     @staticmethod
-    def update(dataset_id: int, **kwargs) -> Optional[Dataset]:
-        with Session(engine) as session:
+    def update(dataset_id: int, engine=None, **kwargs) -> Optional[Dataset]:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             dataset = session.get(Dataset, dataset_id)
             if dataset:
                 for key, value in kwargs.items():
@@ -48,8 +53,9 @@ class DatasetService:
             return dataset
 
     @staticmethod
-    def delete(dataset_id: int) -> bool:
-        with Session(engine) as session:
+    def delete(dataset_id: int, engine=None) -> bool:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             dataset = session.get(Dataset, dataset_id)
             if dataset:
                 session.delete(dataset)
@@ -62,8 +68,9 @@ class DatapointService:
     """Service for datapoint operations"""
 
     @staticmethod
-    def create(dataset_id: int, time: datetime, value: float) -> Datapoint:
-        with Session(engine) as session:
+    def create(dataset_id: int, time: datetime, value: float, engine=None) -> Datapoint:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             datapoint = Datapoint(dataset_id=dataset_id, time=time, value=value)
             session.add(datapoint)
             session.commit()
@@ -71,9 +78,10 @@ class DatapointService:
             return datapoint
 
     @staticmethod
-    def bulk_create(datapoints: List[dict]) -> int:
+    def bulk_create(datapoints: List[dict], engine=None) -> int:
         """Create multiple datapoints at once"""
-        with Session(engine) as session:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             for dp_data in datapoints:
                 datapoint = Datapoint(**dp_data)
                 session.add(datapoint)
@@ -81,25 +89,28 @@ class DatapointService:
             return len(datapoints)
 
     @staticmethod
-    def get_by_dataset(dataset_id: int) -> List[Datapoint]:
-        with Session(engine) as session:
-            statement = select(Datapoint).where(Datapoint.dataset_id == dataset_id).order_by(Datapoint.time)
-            return session.exec(statement).all()
+    def get_by_dataset(dataset_id: int, engine=None) -> List[Datapoint]:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
+            statement = select(Datapoint).where(Datapoint.dataset_id == dataset_id).order_by(Datapoint.time)  # type: ignore[arg-type]
+            return list(session.exec(statement).all())
 
     @staticmethod
-    def get_range(dataset_id: int, start_time: datetime, end_time: datetime) -> List[Datapoint]:
-        with Session(engine) as session:
+    def get_range(dataset_id: int, start_time: datetime, end_time: datetime, engine=None) -> List[Datapoint]:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             statement = (
                 select(Datapoint)
                 .where(Datapoint.dataset_id == dataset_id, Datapoint.time >= start_time, Datapoint.time <= end_time)
-                .order_by(Datapoint.time)
+                .order_by(Datapoint.time)  # type: ignore[arg-type]
             )
-            return session.exec(statement).all()
+            return list(session.exec(statement).all())
 
     @staticmethod
-    def delete_before(dataset_id: int, cutoff_time: datetime) -> int:
+    def delete_before(dataset_id: int, cutoff_time: datetime, engine=None) -> int:
         """Delete datapoints before cutoff_time"""
-        with Session(engine) as session:
+        _engine = engine or default_engine
+        with Session(_engine) as session:
             statement = select(Datapoint).where(Datapoint.dataset_id == dataset_id, Datapoint.time < cutoff_time)
             datapoints = session.exec(statement).all()
             count = len(datapoints)
