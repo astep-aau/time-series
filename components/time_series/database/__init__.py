@@ -1,5 +1,5 @@
 from .engine import engine
 from .models import Datapoint, Dataset
-from .service import DatapointService, DatasetService
+from .repository import DatapointRepository, DatasetRepository
 
-__all__ = ["Dataset", "Datapoint", "engine", "DatasetService", "DatapointService"]
+__all__ = ["Dataset", "Datapoint", "engine", "DatasetRepository", "DatapointRepository"]

@@ -7,8 +7,8 @@ from .engine import engine as default_engine
 from .models import Datapoint, Dataset
 
 
-class DatasetService:
-    """Service for dataset operations"""
+class DatasetRepository:
+    """Repository for dataset operations"""
 
     @staticmethod
     def create(name: str, start_date: datetime, description: Optional[str] = None, engine=None) -> Dataset:
@@ -64,8 +64,8 @@ class DatasetService:
             return False
 
 
-class DatapointService:
-    """Service for datapoint operations"""
+class DatapointRepository:
+    """Repository for datapoint operations"""
 
     @staticmethod
     def create(dataset_id: int, time: datetime, value: float, engine=None) -> Datapoint:
