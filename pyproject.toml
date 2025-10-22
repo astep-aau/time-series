@@ -87,10 +87,6 @@ mypy_path = "components, bases"
 namespace_packages = true
 explicit_package_bases = true
 plugins = "pydantic.mypy"
-exclude = [
-    "^alembic/",
-    "^env\\.py$",
-]
 
 #[[tool.mypy.overrides]]
 #module = "bad_dependency_here"
