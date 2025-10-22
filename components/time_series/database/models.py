@@ -6,6 +6,8 @@ from sqlmodel import Field, Relationship, SQLModel
 
 # Dataset model
 class Dataset(SQLModel, table=True):
+    __tablename__ = "datasets"
+
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, max_length=255, index=True)
     start_date: datetime
@@ -17,7 +19,9 @@ class Dataset(SQLModel, table=True):
 
 # Datapoint model
 class Datapoint(SQLModel, table=True):
-    dataset_id: int = Field(foreign_key="dataset.id", primary_key=True)
+    __tablename__ = "datapoints"
+
+    dataset_id: int = Field(foreign_key="datasets.id", primary_key=True)
     time: datetime = Field(primary_key=True)
     value: float
 
