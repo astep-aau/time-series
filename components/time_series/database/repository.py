@@ -4,7 +4,7 @@ from typing import List, Optional
 from sqlmodel import Session, col, select
 
 from .engine import engine as default_engine
-from .models import Datapoint, Dataset
+from .models import Anomaly, AnomalyType, Datapoint, Dataset
 
 
 class DatasetRepository:
@@ -101,6 +101,128 @@ class DatapointRepository:
 
             for dp in datapoints:
                 session.delete(dp)
+
+            session.commit()
+            return count
+
+
+class AnomalyRepository:
+    """Repository for anomaly operations"""
+
+    def __init__(self, engine=None):
+        self.engine = engine or default_engine
+
+    def create(
+        self,
+        dataset_id: int,
+        start_idx: datetime,
+        end_idx: datetime,
+        type: AnomalyType,
+        validated: bool = False,
+    ) -> Anomaly:
+        """Create a new anomaly"""
+        with Session(self.engine) as session:
+            anomaly = Anomaly(
+                dataset_id=dataset_id,
+                start_idx=start_idx,
+                end_idx=end_idx,
+                type=type,
+                validated=validated,
+            )
+            session.add(anomaly)
+            session.commit()
+            session.refresh(anomaly)
+            return anomaly
+
+    def bulk_create(self, anomalies: List[dict]) -> int:
+        """Create multiple anomalies at once"""
+        with Session(self.engine) as session:
+            for anomaly_data in anomalies:
+                anomaly = Anomaly(**anomaly_data)
+                session.add(anomaly)
+            session.commit()
+            return len(anomalies)
+
+    def get_by_id(self, anomaly_id: int) -> Optional[Anomaly]:
+        """Get an anomaly by its ID"""
+        with Session(self.engine) as session:
+            return session.get(Anomaly, anomaly_id)
+
+    def get_by_dataset(self, dataset_id: int) -> List[Anomaly]:
+        """Get all anomalies for a dataset"""
+        with Session(self.engine) as session:
+            statement = select(Anomaly).where(Anomaly.dataset_id == dataset_id).order_by(col(Anomaly.start_idx))
+            return list(session.exec(statement).all())
+
+    def get_by_type(self, dataset_id: int, anomaly_type: AnomalyType) -> List[Anomaly]:
+        """Get anomalies of a specific type for a dataset"""
+        with Session(self.engine) as session:
+            statement = (
+                select(Anomaly)
+                .where(Anomaly.dataset_id == dataset_id, Anomaly.type == anomaly_type)
+                .order_by(col(Anomaly.start_idx))
+            )
+            return list(session.exec(statement).all())
+
+    def get_validated(self, dataset_id: int, validated: bool = True) -> List[Anomaly]:
+        """Get validated or unvalidated anomalies for a dataset"""
+        with Session(self.engine) as session:
+            statement = (
+                select(Anomaly)
+                .where(Anomaly.dataset_id == dataset_id, Anomaly.validated == validated)
+                .order_by(col(Anomaly.start_idx))
+            )
+            return list(session.exec(statement).all())
+
+    def get_range(self, dataset_id: int, start_time: datetime, end_time: datetime) -> List[Anomaly]:
+        """Get anomalies that overlap with a time range"""
+        with Session(self.engine) as session:
+            statement = (
+                select(Anomaly)
+                .where(
+                    Anomaly.dataset_id == dataset_id,
+                    Anomaly.start_idx <= end_time,
+                    Anomaly.end_idx >= start_time,
+                )
+                .order_by(col(Anomaly.start_idx))
+            )
+            return list(session.exec(statement).all())
+
+    def update(self, anomaly_id: int, **kwargs) -> Optional[Anomaly]:
+        """Update an anomaly"""
+        with Session(self.engine) as session:
+            anomaly = session.get(Anomaly, anomaly_id)
+            if anomaly:
+                for key, value in kwargs.items():
+                    setattr(anomaly, key, value)
+                session.add(anomaly)
+                session.commit()
+                session.refresh(anomaly)
+            return anomaly
+
+    def validate(self, anomaly_id: int) -> Optional[Anomaly]:
+        """Mark an anomaly as validated"""
+        return self.update(anomaly_id, validated=True)
+
+    def delete(self, anomaly_id: int) -> bool:
+        """Delete an anomaly"""
+        with Session(self.engine) as session:
+            anomaly = session.get(Anomaly, anomaly_id)
+            if anomaly:
+                session.delete(anomaly)
+                session.commit()
+                return True
+            return False
+
+    def delete_by_dataset(self, dataset_id: int) -> int:
+        """Delete all anomalies for a dataset"""
+        with Session(self.engine) as session:
+            statement = select(Anomaly).where(Anomaly.dataset_id == dataset_id)
+            anomalies = session.exec(statement).all()
+            count = len(anomalies)
+
+            for anomaly in anomalies:
+                session.delete(anomaly)
 
             session.commit()
             return count
