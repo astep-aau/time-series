@@ -115,8 +115,8 @@ class AnomalyRepository:
     def create(
         self,
         dataset_id: int,
-        start_idx: datetime,
-        end_idx: datetime,
+        start: datetime,
+        end: datetime,
         type: AnomalyType,
         validated: bool = False,
     ) -> Anomaly:
@@ -124,8 +124,8 @@ class AnomalyRepository:
         with Session(self.engine) as session:
             anomaly = Anomaly(
                 dataset_id=dataset_id,
-                start_idx=start_idx,
-                end_idx=end_idx,
+                start=start,
+                end=end,
                 type=type,
                 validated=validated,
             )
@@ -151,7 +151,7 @@ class AnomalyRepository:
     def get_by_dataset(self, dataset_id: int) -> List[Anomaly]:
         """Get all anomalies for a dataset"""
         with Session(self.engine) as session:
-            statement = select(Anomaly).where(Anomaly.dataset_id == dataset_id).order_by(col(Anomaly.start_idx))
+            statement = select(Anomaly).where(Anomaly.dataset_id == dataset_id).order_by(col(Anomaly.start))
             return list(session.exec(statement).all())
 
     def get_by_type(self, dataset_id: int, anomaly_type: AnomalyType) -> List[Anomaly]:
@@ -160,7 +160,7 @@ class AnomalyRepository:
             statement = (
                 select(Anomaly)
                 .where(Anomaly.dataset_id == dataset_id, Anomaly.type == anomaly_type)
-                .order_by(col(Anomaly.start_idx))
+                .order_by(col(Anomaly.start))
             )
             return list(session.exec(statement).all())
 
@@ -170,7 +170,7 @@ class AnomalyRepository:
             statement = (
                 select(Anomaly)
                 .where(Anomaly.dataset_id == dataset_id, Anomaly.validated == validated)
-                .order_by(col(Anomaly.start_idx))
+                .order_by(col(Anomaly.start))
             )
             return list(session.exec(statement).all())
 
@@ -181,10 +181,10 @@ class AnomalyRepository:
                 select(Anomaly)
                 .where(
                     Anomaly.dataset_id == dataset_id,
-                    Anomaly.start_idx <= end_time,
-                    Anomaly.end_idx >= start_time,
+                    Anomaly.start <= end_time,
+                    Anomaly.end >= start_time,
                 )
-                .order_by(col(Anomaly.start_idx))
+                .order_by(col(Anomaly.start))
             )
             return list(session.exec(statement).all())
 

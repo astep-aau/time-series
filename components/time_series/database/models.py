@@ -37,8 +37,8 @@ class Anomaly(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     dataset_id: int = Field(foreign_key="datasets.id")
-    start_idx: datetime
-    end_idx: datetime
+    start: datetime
+    end: datetime
     type: AnomalyType
     validated: bool = Field(default=False)
 

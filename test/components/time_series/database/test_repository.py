@@ -218,15 +218,51 @@ def anomaly_repo(test_engine):
 
 
 @pytest.fixture
-def dataset_with_anomalies(sample_dataset, anomaly_repo):
-    """Create a dataset with sample anomalies"""
+def dataset_with_simple_anomalies(sample_dataset, anomaly_repo):
+    """Create a dataset with 3 simple point anomalies"""
     base_time = datetime(2024, 1, 1, 12, 0, 0)
     anomalies = [
         {
             "dataset_id": sample_dataset.id,
-            "start_idx": base_time + timedelta(hours=i),
-            "end_idx": base_time + timedelta(hours=i, minutes=30),
+            "start": base_time + timedelta(hours=i),
+            "end": base_time + timedelta(hours=i, minutes=30),
+            "type": AnomalyType.point,
+            "validated": False,
+        }
+        for i in range(3)
+    ]
+    anomaly_repo.bulk_create(anomalies)
+    yield sample_dataset
+
+
+@pytest.fixture
+def dataset_with_mixed_types(sample_dataset, anomaly_repo):
+    """Create a dataset with both point and contextual anomalies"""
+    base_time = datetime(2024, 1, 1, 12, 0, 0)
+    anomalies = [
+        {
+            "dataset_id": sample_dataset.id,
+            "start": base_time + timedelta(hours=i),
+            "end": base_time + timedelta(hours=i, minutes=30),
             "type": AnomalyType.point if i % 2 == 0 else AnomalyType.contextual,
+            "validated": False,
+        }
+        for i in range(6)
+    ]
+    anomaly_repo.bulk_create(anomalies)
+    yield sample_dataset
+
+
+@pytest.fixture
+def dataset_with_validated_anomalies(sample_dataset, anomaly_repo):
+    """Create a dataset with mix of validated and unvalidated anomalies"""
+    base_time = datetime(2024, 1, 1, 12, 0, 0)
+    anomalies = [
+        {
+            "dataset_id": sample_dataset.id,
+            "start": base_time + timedelta(hours=i),
+            "end": base_time + timedelta(hours=i, minutes=30),
+            "type": AnomalyType.point,
             "validated": i < 3,
         }
         for i in range(6)
@@ -245,16 +281,16 @@ class TestAnomalyRepository:
 
         anomaly = anomaly_repo.create(
             dataset_id=sample_dataset.id,
-            start_idx=start_time,
-            end_idx=end_time,
+            start=start_time,
+            end=end_time,
             type=AnomalyType.point,
             validated=False,
         )
 
         assert anomaly.id is not None
         assert anomaly.dataset_id == sample_dataset.id
-        assert anomaly.start_idx == start_time
-        assert anomaly.end_idx == end_time
+        assert anomaly.start == start_time
+        assert anomaly.end == end_time
         assert anomaly.type == AnomalyType.point
         assert anomaly.validated is False
 
@@ -264,8 +300,8 @@ class TestAnomalyRepository:
         anomalies = [
             {
                 "dataset_id": sample_dataset.id,
-                "start_idx": base_time + timedelta(hours=i),
-                "end_idx": base_time + timedelta(hours=i, minutes=30),
+                "start": base_time + timedelta(hours=i),
+                "end": base_time + timedelta(hours=i, minutes=30),
                 "type": AnomalyType.point,
                 "validated": False,
             }
@@ -275,28 +311,28 @@ class TestAnomalyRepository:
         count = anomaly_repo.bulk_create(anomalies)
         assert count == 5
 
-    def test_get_anomaly_by_id(self, dataset_with_anomalies, anomaly_repo):
+    def test_get_anomaly_by_id(self, dataset_with_simple_anomalies, anomaly_repo):
         """Test retrieving an anomaly by ID"""
-        anomalies = anomaly_repo.get_by_dataset(dataset_with_anomalies.id)
+        anomalies = anomaly_repo.get_by_dataset(dataset_with_simple_anomalies.id)
         first_anomaly = anomalies[0]
 
         retrieved = anomaly_repo.get_by_id(first_anomaly.id)
 
         assert retrieved is not None
         assert retrieved.id == first_anomaly.id
-        assert retrieved.dataset_id == dataset_with_anomalies.id
+        assert retrieved.dataset_id == dataset_with_simple_anomalies.id
 
-    def test_get_anomalies_by_dataset(self, dataset_with_anomalies, anomaly_repo):
+    def test_get_anomalies_by_dataset(self, dataset_with_simple_anomalies, anomaly_repo):
         """Test retrieving all anomalies for a dataset"""
-        anomalies = anomaly_repo.get_by_dataset(dataset_with_anomalies.id)
+        anomalies = anomaly_repo.get_by_dataset(dataset_with_simple_anomalies.id)
 
         assert isinstance(anomalies, list)
-        assert len(anomalies) == 6
+        assert len(anomalies) == 3
 
-    def test_get_anomalies_by_type(self, dataset_with_anomalies, anomaly_repo):
+    def test_get_anomalies_by_type(self, dataset_with_mixed_types, anomaly_repo):
         """Test retrieving anomalies by type"""
-        point_anomalies = anomaly_repo.get_by_type(dataset_with_anomalies.id, AnomalyType.point)
-        contextual_anomalies = anomaly_repo.get_by_type(dataset_with_anomalies.id, AnomalyType.contextual)
+        point_anomalies = anomaly_repo.get_by_type(dataset_with_mixed_types.id, AnomalyType.point)
+        contextual_anomalies = anomaly_repo.get_by_type(dataset_with_mixed_types.id, AnomalyType.contextual)
 
         assert len(point_anomalies) == 3  # Indices 0, 2, 4
         assert len(contextual_anomalies) == 3  # Indices 1, 3, 5
@@ -307,10 +343,10 @@ class TestAnomalyRepository:
         for anomaly in contextual_anomalies:
             assert anomaly.type == AnomalyType.contextual
 
-    def test_get_validated_anomalies(self, dataset_with_anomalies, anomaly_repo):
+    def test_get_validated_anomalies(self, dataset_with_validated_anomalies, anomaly_repo):
         """Test retrieving validated vs unvalidated anomalies"""
-        validated = anomaly_repo.get_validated(dataset_with_anomalies.id, validated=True)
-        unvalidated = anomaly_repo.get_validated(dataset_with_anomalies.id, validated=False)
+        validated = anomaly_repo.get_validated(dataset_with_validated_anomalies.id, validated=True)
+        unvalidated = anomaly_repo.get_validated(dataset_with_validated_anomalies.id, validated=False)
 
         assert len(validated) == 3  # Indices 0, 1, 2
         assert len(unvalidated) == 3  # Indices 3, 4, 5
@@ -321,41 +357,39 @@ class TestAnomalyRepository:
         for anomaly in unvalidated:
             assert anomaly.validated is False
 
-    def test_get_anomalies_in_range(self, dataset_with_anomalies, anomaly_repo):
+    def test_get_anomalies_in_range(self, dataset_with_simple_anomalies, anomaly_repo):
         """Test retrieving anomalies within a time range"""
         base_time = datetime(2024, 1, 1, 12, 0, 0)
-        start_time = base_time + timedelta(hours=1, minutes=15)
-        end_time = base_time + timedelta(hours=4, minutes=15)
+        start_time = base_time + timedelta(hours=0, minutes=15)
+        end_time = base_time + timedelta(hours=1, minutes=45)
 
         anomalies = anomaly_repo.get_range(
-            dataset_id=dataset_with_anomalies.id, start_time=start_time, end_time=end_time
+            dataset_id=dataset_with_simple_anomalies.id, start_time=start_time, end_time=end_time
         )
 
         # Should include anomalies that overlap with the range
+        # Anomaly 0: 0:00-0:30 (overlaps)
         # Anomaly 1: 1:00-1:30 (overlaps)
-        # Anomaly 2: 2:00-2:30 (overlaps)
-        # Anomaly 3: 3:00-3:30 (overlaps)
-        # Anomaly 4: 4:00-4:30 (overlaps)
-        assert len(anomalies) == 4
+        assert len(anomalies) == 2
 
-    def test_update_anomaly(self, dataset_with_anomalies, anomaly_repo):
+    def test_update_anomaly(self, dataset_with_simple_anomalies, anomaly_repo):
         """Test updating an anomaly"""
-        anomalies = anomaly_repo.get_by_dataset(dataset_with_anomalies.id)
+        anomalies = anomaly_repo.get_by_dataset(dataset_with_simple_anomalies.id)
         first_anomaly = anomalies[0]
 
-        new_end_time = first_anomaly.end_idx + timedelta(hours=1)
-        updated = anomaly_repo.update(first_anomaly.id, end_idx=new_end_time, type=AnomalyType.contextual)
+        new_end_time = first_anomaly.end + timedelta(hours=1)
+        updated = anomaly_repo.update(first_anomaly.id, end=new_end_time, type=AnomalyType.contextual)
 
         assert updated is not None
-        assert updated.end_idx == new_end_time
+        assert updated.end == new_end_time
         assert updated.type == AnomalyType.contextual
 
     def test_validate_anomaly(self, sample_dataset, anomaly_repo):
         """Test marking an anomaly as validated"""
         anomaly = anomaly_repo.create(
             dataset_id=sample_dataset.id,
-            start_idx=datetime(2024, 1, 1, 12, 0, 0),
-            end_idx=datetime(2024, 1, 1, 12, 30, 0),
+            start=datetime(2024, 1, 1, 12, 0, 0),
+            end=datetime(2024, 1, 1, 12, 30, 0),
             type=AnomalyType.point,
             validated=False,
         )
@@ -367,9 +401,9 @@ class TestAnomalyRepository:
         assert validated_anomaly is not None
         assert validated_anomaly.validated is True
 
-    def test_delete_anomaly(self, dataset_with_anomalies, anomaly_repo):
+    def test_delete_anomaly(self, dataset_with_simple_anomalies, anomaly_repo):
         """Test deleting an anomaly"""
-        anomalies = anomaly_repo.get_by_dataset(dataset_with_anomalies.id)
+        anomalies = anomaly_repo.get_by_dataset(dataset_with_simple_anomalies.id)
         first_anomaly = anomalies[0]
         anomaly_id = first_anomaly.id
 
@@ -379,16 +413,16 @@ class TestAnomalyRepository:
         assert anomaly_repo.get_by_id(anomaly_id) is None
 
         # Verify count decreased
-        remaining = anomaly_repo.get_by_dataset(dataset_with_anomalies.id)
-        assert len(remaining) == 5
+        remaining = anomaly_repo.get_by_dataset(dataset_with_simple_anomalies.id)
+        assert len(remaining) == 2
 
-    def test_delete_by_dataset(self, dataset_with_anomalies, anomaly_repo):
+    def test_delete_by_dataset(self, dataset_with_simple_anomalies, anomaly_repo):
         """Test deleting all anomalies for a dataset"""
-        count = anomaly_repo.delete_by_dataset(dataset_with_anomalies.id)
+        count = anomaly_repo.delete_by_dataset(dataset_with_simple_anomalies.id)
 
-        assert count == 6
+        assert count == 3
 
-        remaining = anomaly_repo.get_by_dataset(dataset_with_anomalies.id)
+        remaining = anomaly_repo.get_by_dataset(dataset_with_simple_anomalies.id)
         assert len(remaining) == 0
 
     def test_get_nonexistent_anomaly(self, anomaly_repo):
@@ -396,12 +430,12 @@ class TestAnomalyRepository:
         anomaly = anomaly_repo.get_by_id(99999)
         assert anomaly is None
 
-    def test_anomalies_ordered_by_start_time(self, dataset_with_anomalies, anomaly_repo):
+    def test_anomalies_ordered_by_start_time(self, dataset_with_simple_anomalies, anomaly_repo):
         """Test that anomalies are returned in start time order"""
-        anomalies = anomaly_repo.get_by_dataset(dataset_with_anomalies.id)
+        anomalies = anomaly_repo.get_by_dataset(dataset_with_simple_anomalies.id)
 
-        start_times = [anomaly.start_idx for anomaly in anomalies]
-        assert start_times == sorted(start_times), "Anomalies should be ordered by start_idx"
+        start_times = [anomaly.start for anomaly in anomalies]
+        assert start_times == sorted(start_times), "Anomalies should be ordered by start time"
 
 
 class TestAnomalyCascadeDelete:
@@ -422,8 +456,8 @@ class TestAnomalyCascadeDelete:
             [
                 {
                     "dataset_id": dataset.id,
-                    "start_idx": base_time + timedelta(hours=i),
-                    "end_idx": base_time + timedelta(hours=i, minutes=30),
+                    "start": base_time + timedelta(hours=i),
+                    "end": base_time + timedelta(hours=i, minutes=30),
                     "type": AnomalyType.point,
                     "validated": False,
                 }
@@ -452,12 +486,12 @@ class TestAnomalyEdgeCases:
 
         anomaly = anomaly_repo.create(
             dataset_id=sample_dataset.id,
-            start_idx=time_point,
-            end_idx=time_point,
+            start=time_point,
+            end=time_point,
             type=AnomalyType.point,
         )
 
-        assert anomaly.start_idx == anomaly.end_idx
+        assert anomaly.start == anomaly.end
 
     def test_overlapping_anomalies(self, sample_dataset, anomaly_repo):
         """Test creating overlapping anomalies (should be allowed)"""
@@ -465,15 +499,15 @@ class TestAnomalyEdgeCases:
 
         anomaly1 = anomaly_repo.create(
             dataset_id=sample_dataset.id,
-            start_idx=base_time,
-            end_idx=base_time + timedelta(hours=2),
+            start=base_time,
+            end=base_time + timedelta(hours=2),
             type=AnomalyType.contextual,
         )
 
         anomaly2 = anomaly_repo.create(
             dataset_id=sample_dataset.id,
-            start_idx=base_time + timedelta(hours=1),
-            end_idx=base_time + timedelta(hours=3),
+            start=base_time + timedelta(hours=1),
+            end=base_time + timedelta(hours=3),
             type=AnomalyType.point,
         )
 
@@ -493,8 +527,8 @@ class TestAnomalyEdgeCases:
             [
                 {
                     "dataset_id": dataset1.id,
-                    "start_idx": base_time + timedelta(hours=i),
-                    "end_idx": base_time + timedelta(hours=i, minutes=30),
+                    "start": base_time + timedelta(hours=i),
+                    "end": base_time + timedelta(hours=i, minutes=30),
                     "type": AnomalyType.point,
                     "validated": False,
                 }
@@ -507,8 +541,8 @@ class TestAnomalyEdgeCases:
             [
                 {
                     "dataset_id": dataset2.id,
-                    "start_idx": base_time + timedelta(hours=i),
-                    "end_idx": base_time + timedelta(hours=i, minutes=30),
+                    "start": base_time + timedelta(hours=i),
+                    "end": base_time + timedelta(hours=i, minutes=30),
                     "type": AnomalyType.contextual,
                     "validated": True,
                 }

@@ -1,8 +1,8 @@
 """added anomaly table
 
-Revision ID: b1681f39a192
+Revision ID: 244d2395ac22
 Revises: fea28f6fceb8
-Create Date: 2025-10-24 11:07:50.761128
+Create Date: 2025-10-27 11:30:29.570968
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = "b1681f39a192"
+revision: str = "244d2395ac22"
 down_revision: Union[str, Sequence[str], None] = "fea28f6fceb8"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,8 +26,8 @@ def upgrade() -> None:
         "anomalies",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("dataset_id", sa.Integer(), nullable=False),
-        sa.Column("start_idx", sa.DateTime(), nullable=False),
-        sa.Column("end_idx", sa.DateTime(), nullable=False),
+        sa.Column("start", sa.DateTime(), nullable=False),
+        sa.Column("end", sa.DateTime(), nullable=False),
         sa.Column("type", sa.Enum("point", "contextual", name="anomalytype"), nullable=False),
         sa.Column("validated", sa.Boolean(), nullable=False),
         sa.ForeignKeyConstraint(
