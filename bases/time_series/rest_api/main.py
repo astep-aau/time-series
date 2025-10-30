@@ -1,7 +1,6 @@
 import logging
 
 from fastapi import FastAPI
-
 from time_series.greeting import hello_world
 
 logger = logging.getLogger("rest-api")

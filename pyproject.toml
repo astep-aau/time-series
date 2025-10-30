@@ -34,6 +34,7 @@ dev = [
     "hatch>=1.14.2",
     "ipython>=9.6.0",
     "mypy>=1.18.2",
+    "pandas>=2.3.3",
     "poethepoet>=0.37.0",
     "polylith-cli>=1.35.0",
     "pre-commit>=4.3.0",
