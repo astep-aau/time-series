@@ -1,18 +1,19 @@
-import pandas as pd
-import numpy as np
-from typing import Union, Optional
-from datetime import datetime
 import os
+from datetime import datetime
+from typing import Union
+
+import numpy as np
+import pandas as pd
 
 # NOTE: This utility requires pandas and numpy to be installed in your environment.
 
-def standardize_numpy_to_csv(
-    numpy_file_path: str = 'name.npy',
-    output_filename: str = 'standardized_output.csv',
-    sample_rate_seconds: int = 60,
-    column_index: int = 0
-) -> Union[str, None]:
 
+def standardize_numpy_to_csv(
+    numpy_file_path: str = "name.npy",
+    output_filename: str = "standardized_output.csv",
+    sample_rate_seconds: int = 60,
+    column_index: int = 0,
+) -> Union[str, None]:
     try:
         if not os.path.exists(numpy_file_path):
             print(f"ERROR: NumPy file not found at path: {numpy_file_path}. Please check file location.")
@@ -29,10 +30,7 @@ def standardize_numpy_to_csv(
         time_index = np.arange(num_samples) * sample_rate_seconds
         unix_time = (start_epoch + time_index).astype(np.int64)
 
-        df = pd.DataFrame({
-            'unix_time': unix_time,
-            'values': values
-        })
+        df = pd.DataFrame({"unix_time": unix_time, "values": values})
 
         output_dir = os.path.dirname(output_filename)
         if output_dir and not os.path.exists(output_dir):
@@ -43,7 +41,7 @@ def standardize_numpy_to_csv(
         return output_filename
 
     except IndexError:
-        cols = data_matrix.shape[1] if 'data_matrix' in locals() else 'N/A'
+        cols = data_matrix.shape[1] if "data_matrix" in locals() else "N/A"
         print(f"ERROR: Column index {column_index} is out of bounds. Dataset has {cols} columns.")
         return None
     except Exception as e:
@@ -53,18 +51,14 @@ def standardize_numpy_to_csv(
 
 # NOTE: This block runs when the file is executed directly (e.g., via python script.py).
 if __name__ == "__main__":
+    input_npy = "file_name.npy"
 
-    input_npy = 'file_name.npy'
-
-    output_csv = 'output_file_name.csv'
+    output_csv = "output_file_name.csv"
 
     print(f"Attempting to standardize data from '{input_npy}'...")
 
     result_path = standardize_numpy_to_csv(
-        numpy_file_path=input_npy,
-        output_filename=output_csv,
-        sample_rate_seconds=60,
-        column_index=0
+        numpy_file_path=input_npy, output_filename=output_csv, sample_rate_seconds=60, column_index=0
     )
 
     if result_path:
