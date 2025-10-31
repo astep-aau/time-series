@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from time_series.database.repository import DatapointRepository, DatasetRepository
 
@@ -22,7 +22,7 @@ def get_all_datasets(dataset_repo=None, datapoint_repo=None) -> List[Dict]:
     return result
 
 
-def get_dataset_by_id(dataset_id: int, dataset_repo=None, datapoint_repo=None) -> Optional[Dict]:
+def get_dataset_by_id(dataset_id: int, dataset_repo=None, datapoint_repo=None) -> Dict:
     dataset_repo = dataset_repo or DatasetRepository()
     datapoint_repo = datapoint_repo or DatapointRepository()
 

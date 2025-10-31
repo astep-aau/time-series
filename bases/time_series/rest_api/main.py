@@ -20,5 +20,5 @@ def get_datasets() -> dict:
 
 
 @app.get("/datasets/{dataset_id}")
-def get_dataset(dataset_id: str) -> dict:
+def get_dataset(dataset_id: int) -> dict:
     return get_dataset_by_id(dataset_id)
