@@ -43,11 +43,11 @@ def mock_datapoint_repo():
     return repo
 
 
-# -------------------------
 # Tests
-# -------------------------
+# Import functions inside tests to avoid loading models during test collection
+
+
 def test_get_all_datasets(mock_dataset_repo, mock_datapoint_repo):
-    # Import here to avoid loading models during test collection
     from time_series.dataset_service.overview_service import get_all_datasets
 
     result = get_all_datasets(dataset_repo=mock_dataset_repo, datapoint_repo=mock_datapoint_repo)
@@ -59,7 +59,6 @@ def test_get_all_datasets(mock_dataset_repo, mock_datapoint_repo):
 
 
 def test_get_dataset_by_id(mock_dataset_repo, mock_datapoint_repo):
-    # Import here to avoid loading models during test collection
     from time_series.dataset_service.overview_service import get_dataset_by_id
 
     result = get_dataset_by_id(1, dataset_repo=mock_dataset_repo, datapoint_repo=mock_datapoint_repo)
@@ -70,7 +69,6 @@ def test_get_dataset_by_id(mock_dataset_repo, mock_datapoint_repo):
 
 
 def test_get_dataset_by_id_not_found(mock_dataset_repo, mock_datapoint_repo):
-    # Import here to avoid loading models during test collection
     from time_series.dataset_service.overview_service import get_dataset_by_id
 
     result = get_dataset_by_id(999, dataset_repo=mock_dataset_repo, datapoint_repo=mock_datapoint_repo)
