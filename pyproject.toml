@@ -65,6 +65,7 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 "components/time_series/greeting" = "time_series/greeting"
 "components/time_series/model" = "time_series/model"
 "components/time_series/database" = "time_series/database"
+"components/time_series/dataset_service" = "time_series/dataset_service"
 
 [tool.ruff]
 exclude = [
