@@ -76,7 +76,7 @@ source .venv/bin/activate
 This will install all dependencies and set up virtualenv and pre-commit.
 
 > [!TIP]
-> You may also configure `direnv` and write `direnv allow` once in this repo to do this
+> You may also configure [`direnv`](https://direnv.net/#getting-started) and write `direnv allow` once in this repo to do this
 > automatically at folder entry.
 
 ### Getting dangerous with `uv`

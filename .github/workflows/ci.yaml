@@ -28,18 +28,24 @@ jobs:
 
       - name: Run format check
         run: uv run poe format
+        if: "!cancelled()"
 
       - name: Run linter
         run: uv run poe lint
+        if: "!cancelled()"
 
       - name: Run editorconfig check
         run: uv run poe editorcheck
+        if: "!cancelled()"
 
       - name: Run polyglot check
         run: uv run poe polycheck
+        if: "!cancelled()"
 
       - name: Run type checking
         run: uv run poe typecheck
+        if: "!cancelled()"
 
       - name: Run tests
         run: uv run poe test
+        if: "!cancelled()"
