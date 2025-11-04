@@ -4,7 +4,7 @@ from typing import List, Optional
 from sqlmodel import Session, col, select
 
 from .engine import engine as default_engine
-from .models import Anomaly, AnomalyType, Datapoint, Dataset
+from .models import Analysis, Anomaly, AnomalyType, Datapoint, Dataset
 
 
 class DatasetRepository:
@@ -63,7 +63,7 @@ class DatapointRepository:
 
     def create(self, dataset_id: int, time: datetime, value: float) -> Datapoint:
         with Session(self.engine) as session:
-            datapoint = Datapoint(dataset_id=dataset_id, time=time, value=value)
+            datapoint = Datapoint(dataset_id=dataset_id, time=time, value=float(value))
             session.add(datapoint)
             session.commit()
             session.refresh(datapoint)
@@ -106,6 +106,66 @@ class DatapointRepository:
             return count
 
 
+class AnalysisRepository:
+    """Repository for analysis operations"""
+
+    def __init__(self, engine=None):
+        self.engine = engine or default_engine
+
+    def create(
+        self,
+        dataset_id: int,
+        model: str,
+        name: str,
+        description: Optional[str] = None,
+    ) -> Analysis:
+        """Create a new analysis"""
+        with Session(self.engine) as session:
+            analysis = Analysis(
+                dataset_id=dataset_id,
+                model=model,
+                name=name,
+                description=description,
+            )
+            session.add(analysis)
+            session.commit()
+            session.refresh(analysis)
+            return analysis
+
+    def get_by_id(self, analysis_id: int) -> Optional[Analysis]:
+        """Get an analysis by its ID"""
+        with Session(self.engine) as session:
+            return session.get(Analysis, analysis_id)
+
+    def get_by_dataset(self, dataset_id: int) -> List[Analysis]:
+        """Get all analyses for a dataset"""
+        with Session(self.engine) as session:
+            statement = select(Analysis).where(Analysis.dataset_id == dataset_id).order_by(col(Analysis.id))
+            return list(session.exec(statement).all())
+
+    def update(self, analysis_id: int, **kwargs) -> Optional[Analysis]:
+        """Update an analysis"""
+        with Session(self.engine) as session:
+            analysis = session.get(Analysis, analysis_id)
+            if analysis:
+                for key, value in kwargs.items():
+                    setattr(analysis, key, value)
+                session.add(analysis)
+                session.commit()
+                session.refresh(analysis)
+            return analysis
+
+    def delete(self, analysis_id: int) -> bool:
+        """Delete an analysis"""
+        with Session(self.engine) as session:
+            analysis = session.get(Analysis, analysis_id)
+            if analysis:
+                session.delete(analysis)
+                session.commit()
+                return True
+            return False
+
+
 class AnomalyRepository:
     """Repository for anomaly operations"""
 
@@ -114,7 +174,7 @@ class AnomalyRepository:
 
     def create(
         self,
-        dataset_id: int,
+        analysis_id: int,
         start: datetime,
         end: datetime,
         type: AnomalyType,
@@ -123,7 +183,7 @@ class AnomalyRepository:
         """Create a new anomaly"""
         with Session(self.engine) as session:
             anomaly = Anomaly(
-                dataset_id=dataset_id,
+                analysis_id=analysis_id,
                 start=start,
                 end=end,
                 type=type,
@@ -148,39 +208,39 @@ class AnomalyRepository:
         with Session(self.engine) as session:
             return session.get(Anomaly, anomaly_id)
 
-    def get_by_dataset(self, dataset_id: int) -> List[Anomaly]:
-        """Get all anomalies for a dataset"""
+    def get_by_analysis(self, analysis_id: int) -> List[Anomaly]:
+        """Get all anomalies for an analysis"""
         with Session(self.engine) as session:
-            statement = select(Anomaly).where(Anomaly.dataset_id == dataset_id).order_by(col(Anomaly.start))
+            statement = select(Anomaly).where(Anomaly.analysis_id == analysis_id).order_by(col(Anomaly.start))
             return list(session.exec(statement).all())
 
-    def get_by_type(self, dataset_id: int, anomaly_type: AnomalyType) -> List[Anomaly]:
-        """Get anomalies of a specific type for a dataset"""
+    def get_by_type(self, analysis_id: int, anomaly_type: AnomalyType) -> List[Anomaly]:
+        """Get anomalies of a specific type for an analysis"""
         with Session(self.engine) as session:
             statement = (
                 select(Anomaly)
-                .where(Anomaly.dataset_id == dataset_id, Anomaly.type == anomaly_type)
+                .where(Anomaly.analysis_id == analysis_id, Anomaly.type == anomaly_type)
                 .order_by(col(Anomaly.start))
             )
             return list(session.exec(statement).all())
 
-    def get_validated(self, dataset_id: int, validated: bool = True) -> List[Anomaly]:
-        """Get validated or unvalidated anomalies for a dataset"""
+    def get_validated(self, analysis_id: int, validated: bool = True) -> List[Anomaly]:
+        """Get validated or unvalidated anomalies for an analysis"""
         with Session(self.engine) as session:
             statement = (
                 select(Anomaly)
-                .where(Anomaly.dataset_id == dataset_id, Anomaly.validated == validated)
+                .where(Anomaly.analysis_id == analysis_id, Anomaly.validated == validated)
                 .order_by(col(Anomaly.start))
             )
             return list(session.exec(statement).all())
 
-    def get_range(self, dataset_id: int, start_time: datetime, end_time: datetime) -> List[Anomaly]:
+    def get_range(self, analysis_id: int, start_time: datetime, end_time: datetime) -> List[Anomaly]:
         """Get anomalies that overlap with a time range"""
         with Session(self.engine) as session:
             statement = (
                 select(Anomaly)
                 .where(
-                    Anomaly.dataset_id == dataset_id,
+                    Anomaly.analysis_id == analysis_id,
                     Anomaly.start <= end_time,
                     Anomaly.end >= start_time,
                 )
@@ -214,10 +274,10 @@ class AnomalyRepository:
                 return True
             return False
 
-    def delete_by_dataset(self, dataset_id: int) -> int:
-        """Delete all anomalies for a dataset"""
+    def delete_by_analysis(self, analysis_id: int) -> int:
+        """Delete all anomalies for an analysis"""
         with Session(self.engine) as session:
-            statement = select(Anomaly).where(Anomaly.dataset_id == dataset_id)
+            statement = select(Anomaly).where(Anomaly.analysis_id == analysis_id)
             anomalies = session.exec(statement).all()
             count = len(anomalies)
 
