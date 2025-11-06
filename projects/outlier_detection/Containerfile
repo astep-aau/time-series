@@ -17,7 +17,7 @@ FROM builder AS build
 
 WORKDIR /app
 
-RUN uv build --package rest_api
+RUN uv build --package outlier_detection
 
 # --- Runtime Stage ---
 FROM python:3.13-slim AS runtime
@@ -34,4 +34,4 @@ RUN pip install --no-cache-dir ./*.whl
 EXPOSE 8000
 
 # Start FastAPI
-CMD ["uvicorn", "time_series.rest_api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "time_series.outlier_detection.main:app", "--host", "0.0.0.0", "--port", "8000"]

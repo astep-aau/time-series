@@ -47,8 +47,8 @@ This could look like the following:
 You may also use the `poly` tool directly to do this as well, but this is only to help do this more quickly.
 
 ```bash
-poly create component --name example
-poly create base --name example
+poly create component --name greeting
+poly create base --name rest_api
 poly sync # To add the new bricks to prproject.toml
 ```
 
