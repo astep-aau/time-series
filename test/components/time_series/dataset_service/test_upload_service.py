@@ -17,6 +17,7 @@ def mock_dataset_repo():
     mock_dataset = MockDataset(id=1, name="Test", start_date=datetime.now())
     repo.create.return_value = mock_dataset
     repo.get_by_id.return_value = mock_dataset
+    repo.get_by_name.return_value = None
     return repo
 
 
@@ -172,3 +173,32 @@ def test_add_empty_data_to_dataset(mock_dataset_repo, mock_datapoint_repo):
     assert result["dataset_id"] == 1
     assert result["datapoints_added"] == 0
     mock_datapoint_repo.bulk_create.assert_not_called()
+
+
+def test_create_dataset_with_duplicate_name():
+    from time_series.dataset_service.upload_service import create_dataset
+
+    repo = Mock()
+    existing_dataset = MockDataset(id=1, name="Existing Dataset", start_date=datetime.now())
+    repo.get_by_name.return_value = existing_dataset
+
+    with pytest.raises(ValueError, match="Dataset with name 'Existing Dataset' already exists"):
+        create_dataset(name="Existing Dataset", start_date=datetime.now(), dataset_repo=repo)
+
+    repo.create.assert_not_called()
+
+
+def test_create_dataset_without_name(mock_dataset_repo):
+    from time_series.dataset_service.upload_service import create_dataset
+
+    with pytest.raises(TypeError):
+        create_dataset(start_date=datetime.now(), dataset_repo=mock_dataset_repo)
+    mock_dataset_repo.create.assert_not_called()
+
+
+def test_create_dataset_without_start_date(mock_dataset_repo):
+    from time_series.dataset_service.upload_service import create_dataset
+
+    with pytest.raises(TypeError):
+        create_dataset(name="No Start Date Dataset", dataset_repo=mock_dataset_repo)
+    mock_dataset_repo.create.assert_not_called()

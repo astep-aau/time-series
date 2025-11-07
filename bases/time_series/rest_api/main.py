@@ -29,20 +29,17 @@ def get_datasets() -> dict:
 @app.post("/datasets")
 async def create_dataset(
     request: Request,
-    name: str = Query(..., description="Name of the dataset"),
-    start_date: str = Query(None, description="Start date in ISO format."),
+    name: str = Query(description="Name of the dataset"),
+    start_date: str = Query(description="Start date in ISO format."),
     description: str = Query(None, description="Description of the dataset"),
 ) -> dict:
-    if start_date:
-        try:
-            parsed_start_date = datetime.fromisoformat(start_date)
-        except ValueError:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Invalid start_date format: {start_date}. Expected ISO format.",
-            )
-    else:
-        parsed_start_date = datetime.now()
+    try:
+        parsed_start_date = datetime.fromisoformat(start_date)
+    except ValueError:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid start_date format: {start_date}. Expected ISO format.",
+        )
 
     csv_content = await request.body()
     csv_text = csv_content.decode("utf-8") if csv_content else ""

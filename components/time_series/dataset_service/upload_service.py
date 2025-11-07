@@ -33,6 +33,10 @@ def create_dataset(
 ) -> dict:
     dataset_repo = dataset_repo or DatasetRepository()
 
+    existing_dataset = dataset_repo.get_by_name(name)
+    if existing_dataset:
+        raise ValueError(f"Dataset with name '{name}' already exists")
+
     dataset = dataset_repo.create(name=name, start_date=start_date, description=description)
 
     if not dataset or not dataset.id:
