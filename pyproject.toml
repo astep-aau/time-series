@@ -12,6 +12,7 @@ dependencies = [
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.11.10",
     "sqlmodel>=0.0.25",
+    "tensorflow>=2.20.0",
     "uvicorn>=0.37.0",
 ]
 
