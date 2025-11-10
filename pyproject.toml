@@ -12,15 +12,26 @@ dependencies = [
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.11.10",
     "sqlmodel>=0.0.25",
-    "tensorflow>=2.20.0",
     "uvicorn>=0.37.0",
+    "torch>=2.7.0",
+    "torchvision>=0.22.0,<0.24.0",
 ]
 
 [tool.uv]
 managed = true
 
-#[tool.uv.sources]
-# Make workspace packages available to each other
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu" },
+]
+torchvision = [
+    { index = "pytorch-cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 # To support `--package`
 [tool.uv.workspace]
