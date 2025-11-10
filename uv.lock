@@ -192,6 +192,20 @@ wheels = [
 ]
 
 [[package]]
+name = "fastapi-pagination"
+version = "0.15.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "pydantic" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/bc/db/8a3d097c491ad873574bd7295834ef89e16263ae9104855bbb5ee6d46e47/fastapi_pagination-0.15.0.tar.gz", hash = "sha256:11fe39cbe181ed3c18919b90faf6bfcbe40cb596aa9c52a98bbce85111a29a4f", size = 557472, upload-time = "2025-10-28T19:06:17.732Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/68/91/b835e07234170ba85473227aa107bcf1dc616ff6cb643c0bd9b8225a55f1/fastapi_pagination-0.15.0-py3-none-any.whl", hash = "sha256:ffef937e78903fcb6f356b8407ec1fb0620a06675087fa7d0c4e537a60aa0447", size = 52292, upload-time = "2025-10-28T19:06:16.371Z" },
+]
+
+[[package]]
 name = "filelock"
 version = "3.19.1"
 source = { registry = "https://pypi.org/simple" }
@@ -558,6 +572,7 @@ version = "0.1.0"
 source = { editable = "projects/outlier_detection" }
 dependencies = [
     { name = "fastapi" },
+    { name = "fastapi-pagination" },
     { name = "sqlmodel" },
     { name = "uvicorn" },
 ]
@@ -570,6 +585,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">0" },
+    { name = "fastapi-pagination", specifier = ">=0.15.0" },
     { name = "sqlmodel", specifier = ">0" },
     { name = "uvicorn", specifier = ">0" },
 ]
@@ -975,6 +991,7 @@ source = { editable = "." }
 dependencies = [
     { name = "alembic" },
     { name = "fastapi" },
+    { name = "fastapi-pagination" },
     { name = "psycopg2-binary" },
     { name = "pydantic" },
     { name = "sqlmodel" },
@@ -998,6 +1015,7 @@ dev = [
 requires-dist = [
     { name = "alembic", specifier = ">=1.17.0" },
     { name = "fastapi", specifier = ">=0.118.0" },
+    { name = "fastapi-pagination", specifier = ">=0.15.0" },
     { name = "psycopg2-binary", specifier = ">=2.9.11" },
     { name = "pydantic", specifier = ">=2.11.10" },
     { name = "sqlmodel", specifier = ">=0.0.25" },

@@ -8,6 +8,7 @@ license = "MIT"
 dependencies = [
     "alembic>=1.17.0",
     "fastapi>=0.118.0",
+    "fastapi-pagination>=0.15.0",
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.11.10",
     "sqlmodel>=0.0.25",

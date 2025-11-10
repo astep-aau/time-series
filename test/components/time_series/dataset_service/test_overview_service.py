@@ -17,6 +17,13 @@ class MockDatapoint:
         self.time = time
 
 
+class MockDatapointWithValue:
+    def __init__(self, id, time, value):
+        self.id = id
+        self.time = time
+        self.value = value
+
+
 @pytest.fixture
 def mock_dataset_repo():
     repo = Mock()
@@ -40,6 +47,15 @@ def mock_datapoint_repo():
         if dataset_id == 1
         else [MockDatapoint(datetime(2024, 2, 1, 10, 0)), MockDatapoint(datetime(2024, 2, 1, 11, 0))]
     )
+    return repo
+
+
+@pytest.fixture
+def mock_datapoint_repo_with_values():
+    repo = Mock()
+    datapoints = [MockDatapointWithValue(i, datetime(2024, 1, 1, i, 0), float(i * 10)) for i in range(1, 11)]
+    repo.get_by_dataset.return_value = datapoints
+    repo.get_range.return_value = datapoints[2:7]  # Returns datapoints 3-7
     return repo
 
 
@@ -74,3 +90,26 @@ def test_get_dataset_by_id_not_found(mock_dataset_repo, mock_datapoint_repo):
     result = get_dataset_by_id(999, dataset_repo=mock_dataset_repo, datapoint_repo=mock_datapoint_repo)
     assert "error" in result
     assert result["error"] == "Dataset not found"
+
+
+def test_get_dataset_records_basic(mock_datapoint_repo_with_values):
+    from time_series.dataset_service.overview_service import get_filtered_dataset_records
+
+    result = get_filtered_dataset_records(1, datapoint_repo=mock_datapoint_repo_with_values)
+
+    assert isinstance(result, list)
+    assert len(result) == 10
+    assert result[0]["value"] == 10.0
+    assert "time" in result[0]
+
+
+def test_get_dataset_records_with_date_range(mock_datapoint_repo_with_values):
+    from time_series.dataset_service.overview_service import get_filtered_dataset_records
+
+    start = datetime(2024, 1, 1, 3, 0)
+    end = datetime(2024, 1, 1, 7, 0)
+
+    result = get_filtered_dataset_records(1, start=start, end=end, datapoint_repo=mock_datapoint_repo_with_values)
+
+    assert isinstance(result, list)
+    assert len(result) == 5

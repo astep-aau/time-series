@@ -5,6 +5,7 @@ dependencies = [
     "fastapi>0",
     "sqlmodel>0",
     "uvicorn>0",
+    "fastapi-pagination>=0.15.0",
 ]
 
 [dependency-groups]
