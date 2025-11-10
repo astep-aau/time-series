@@ -67,6 +67,19 @@ def get_dataset(dataset_id: int) -> dict:
     return get_dataset_by_id(dataset_id)
 
 
+@app.get("/datasets/{dataset_id}/records", response_model=Page[dict])
+def get_records(
+    dataset_id: int,
+    start: Optional[datetime] = Query(None, description="Start datetime for filtering records"),
+    end: Optional[datetime] = Query(None, description="End datetime for filtering records"),
+):
+    records_data = get_filtered_dataset_records(dataset_id, start, end)
+    return paginate(records_data)
+
+
+add_pagination(app)
+
+
 @app.put("/datasets/{dataset_id}")
 async def add_dataset_data(request: Request, dataset_id: int) -> dict:
     csv_content = await request.body()
