@@ -55,9 +55,9 @@ def test_parse_empty_csv():
 
 
 def test_create_empty_dataset(mock_dataset_repo, mock_datapoint_repo):
-    from time_series.dataset_service.upload_service import create_dataset_with_data
+    from time_series.dataset_service.upload_service import create_dataset
 
-    result = create_dataset_with_data(
+    result = create_dataset(
         name="Test Dataset",
         start_date=datetime.now(),
         csv_content="",
@@ -71,13 +71,13 @@ def test_create_empty_dataset(mock_dataset_repo, mock_datapoint_repo):
 
 
 def test_create_dataset_with_csv(mock_dataset_repo, mock_datapoint_repo):
-    from time_series.dataset_service.upload_service import create_dataset_with_data
+    from time_series.dataset_service.upload_service import create_dataset
 
     csv_content = """unix_time,values
 1761122529,-0.69516194
 1761122531,-0.68570386"""
 
-    result = create_dataset_with_data(
+    result = create_dataset(
         name="Test Dataset with Data",
         start_date=datetime(2025, 11, 6, 10, 0, 0),
         csv_content=csv_content,
@@ -97,11 +97,11 @@ def test_create_dataset_with_csv(mock_dataset_repo, mock_datapoint_repo):
 
 
 def test_create_dataset_with_custom_start_date(mock_dataset_repo, mock_datapoint_repo):
-    from time_series.dataset_service.upload_service import create_dataset_with_data
+    from time_series.dataset_service.upload_service import create_dataset
 
     custom_date = datetime(2025, 1, 1, 12, 0, 0)
 
-    result = create_dataset_with_data(
+    result = create_dataset(
         name="Custom Date Dataset",
         start_date=custom_date,
         csv_content="",
@@ -115,11 +115,14 @@ def test_create_dataset_with_custom_start_date(mock_dataset_repo, mock_datapoint
     assert "id" in result
 
 
-def test_create_dataset(mock_dataset_repo):
+def test_create_dataset(mock_dataset_repo, mock_datapoint_repo):
     from time_series.dataset_service.upload_service import create_dataset
 
     result = create_dataset(
-        name="Test Dataset", start_date=datetime(2025, 11, 6, 10, 0, 0), dataset_repo=mock_dataset_repo
+        name="Test Dataset",
+        start_date=datetime(2025, 11, 6, 10, 0, 0),
+        dataset_repo=mock_dataset_repo,
+        datapoint_repo=mock_datapoint_repo,
     )
 
     assert result["name"] == "Test"
@@ -175,7 +178,7 @@ def test_add_empty_data_to_dataset(mock_dataset_repo, mock_datapoint_repo):
     mock_datapoint_repo.bulk_create.assert_not_called()
 
 
-def test_create_dataset_with_duplicate_name():
+def test_create_dataset_with_duplicate_name(mock_datapoint_repo):
     from time_series.dataset_service.upload_service import create_dataset
 
     repo = Mock()
@@ -183,22 +186,24 @@ def test_create_dataset_with_duplicate_name():
     repo.get_by_name.return_value = existing_dataset
 
     with pytest.raises(ValueError, match="Dataset with name 'Existing Dataset' already exists"):
-        create_dataset(name="Existing Dataset", start_date=datetime.now(), dataset_repo=repo)
+        create_dataset(
+            name="Existing Dataset", start_date=datetime.now(), dataset_repo=repo, datapoint_repo=mock_datapoint_repo
+        )
 
     repo.create.assert_not_called()
 
 
-def test_create_dataset_without_name(mock_dataset_repo):
+def test_create_dataset_without_name(mock_dataset_repo, mock_datapoint_repo):
     from time_series.dataset_service.upload_service import create_dataset
 
     with pytest.raises(TypeError):
-        create_dataset(start_date=datetime.now(), dataset_repo=mock_dataset_repo)
+        create_dataset(start_date=datetime.now(), dataset_repo=mock_dataset_repo, datapoint_repo=mock_datapoint_repo)
     mock_dataset_repo.create.assert_not_called()
 
 
-def test_create_dataset_without_start_date(mock_dataset_repo):
+def test_create_dataset_without_start_date(mock_dataset_repo, mock_datapoint_repo):
     from time_series.dataset_service.upload_service import create_dataset
 
     with pytest.raises(TypeError):
-        create_dataset(name="No Start Date Dataset", dataset_repo=mock_dataset_repo)
+        create_dataset(name="No Start Date Dataset", dataset_repo=mock_dataset_repo, datapoint_repo=mock_datapoint_repo)
     mock_dataset_repo.create.assert_not_called()

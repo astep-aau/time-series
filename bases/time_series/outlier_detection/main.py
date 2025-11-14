@@ -4,7 +4,7 @@ from datetime import datetime
 from fastapi import FastAPI, HTTPException, Query, Request
 from time_series.dataset_service import (
     add_data_to_dataset,
-    create_dataset_with_data,
+    create_dataset,
     delete_dataset,
     get_all_datasets,
     get_dataset_by_id,
@@ -27,7 +27,7 @@ def get_datasets() -> dict:
 
 
 @app.post("/datasets")
-async def create_dataset(
+async def create_dataset_endpoint(
     request: Request,
     name: str = Query(description="Name of the dataset"),
     start_date: str = Query(description="Start date in ISO format."),
@@ -45,9 +45,7 @@ async def create_dataset(
     csv_text = csv_content.decode("utf-8") if csv_content else ""
 
     try:
-        result = create_dataset_with_data(
-            name=name, start_date=parsed_start_date, description=description, csv_content=csv_text
-        )
+        result = create_dataset(name=name, start_date=parsed_start_date, description=description, csv_content=csv_text)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
