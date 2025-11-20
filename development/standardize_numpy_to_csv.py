@@ -5,8 +5,6 @@ from typing import Union
 import numpy as np
 import pandas as pd
 
-# NOTE: This utility requires pandas and numpy to be installed in your environment.
-
 
 def standardize_numpy_to_csv(
     numpy_file_path: str = "name.npy",
@@ -49,7 +47,6 @@ def standardize_numpy_to_csv(
         return None
 
 
-# NOTE: This block runs when the file is executed directly (e.g., via python script.py).
 if __name__ == "__main__":
     input_npy = "file_name.npy"
 
