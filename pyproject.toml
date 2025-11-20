@@ -53,7 +53,7 @@ typecheck = "mypy ."
 test = "pytest test"
 all = [{ref="format"}, {ref="lint"}, {ref="editorcheck"}, {ref="polycheck"}, {ref="typecheck"}, {ref="test"}]
 
-rest_api = "poe -C projects/rest_api"
+outlier_detection = "poe -C projects/outlier_detection"
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -62,10 +62,11 @@ allow-direct-references = true
 dev-mode-dirs = ["components", "bases", "development", "."]
 
 [tool.polylith.bricks]
-"bases/time_series/rest_api" = "time_series/rest_api"
+"bases/time_series/outlier_detection" = "time_series/outlier_detection"
 "components/time_series/greeting" = "time_series/greeting"
 "components/time_series/model" = "time_series/model"
 "components/time_series/database" = "time_series/database"
+"components/time_series/dataset_service" = "time_series/dataset_service"
 
 [tool.ruff]
 exclude = [

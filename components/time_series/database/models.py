@@ -1,10 +1,10 @@
 from datetime import datetime
+from enum import Enum
 from typing import Optional
 
 from sqlmodel import Field, Relationship, SQLModel
 
 
-# Dataset model
 class Dataset(SQLModel, table=True):
     __tablename__ = "datasets"
 
@@ -13,11 +13,10 @@ class Dataset(SQLModel, table=True):
     start_date: datetime
     description: Optional[str] = None
 
-    # Relationship
     datapoints: list["Datapoint"] = Relationship(back_populates="dataset", cascade_delete=True)
+    analyses: list["Analysis"] = Relationship(back_populates="dataset", cascade_delete=True)
 
 
-# Datapoint model
 class Datapoint(SQLModel, table=True):
     __tablename__ = "datapoints"
 
@@ -25,5 +24,35 @@ class Datapoint(SQLModel, table=True):
     time: datetime = Field(primary_key=True)
     value: float
 
-    # Relationship
     dataset: Optional[Dataset] = Relationship(back_populates="datapoints")
+
+
+class Analysis(SQLModel, table=True):
+    __tablename__ = "analyses"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    dataset_id: int = Field(foreign_key="datasets.id", index=True)
+    model: str = Field(max_length=255)
+    name: str = Field(max_length=255)
+    description: Optional[str] = None
+
+    dataset: Optional[Dataset] = Relationship(back_populates="analyses")
+    anomalies: list["Anomaly"] = Relationship(back_populates="analysis", cascade_delete=True)
+
+
+class AnomalyType(str, Enum):
+    point = "point"
+    contextual = "contextual"
+
+
+class Anomaly(SQLModel, table=True):
+    __tablename__ = "anomalies"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    analysis_id: int = Field(foreign_key="analyses.id", index=True)
+    start: datetime
+    end: datetime
+    type: AnomalyType
+    validated: bool = Field(default=False)
+
+    analysis: Optional[Analysis] = Relationship(back_populates="anomalies")

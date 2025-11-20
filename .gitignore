@@ -206,3 +206,6 @@ marimo/_lsp/
 __marimo__/
 development/P-1.npy
 development/nasa_sensor_0_standardized.csv
+
+# .idea
+.idea/
