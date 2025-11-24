@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import List, Optional, cast
 
 import python_weather
 
@@ -27,7 +27,8 @@ async def get_upcoming_temps(city="London") -> Optional[List[int]]:
         print("weather data recceived:" + str(weather))
         await client.close()
         ret = []
-        for daily in weather:
+        weather = cast(python_weather.forecast.Forecast, weather)
+        for daily in weather.daily_forecasts:
             ret.append(daily.temperature)
         return ret
     except TypeError:
