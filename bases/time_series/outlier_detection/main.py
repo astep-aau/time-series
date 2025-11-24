@@ -5,6 +5,7 @@ from typing import Optional, TypeVar
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi_pagination import Page, add_pagination, paginate
 from fastapi_pagination.customization import CustomizedPage, UseParamsFields
+from starlette.middleware.cors import CORSMiddleware
 from time_series.dataset_service import (
     add_data_to_dataset,
     create_dataset,
@@ -18,6 +19,14 @@ from time_series.greeting import hello_world
 logger = logging.getLogger("rest-api")
 app = FastAPI()
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["localhost", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 T = TypeVar("T")
 CustomPage = CustomizedPage[
@@ -65,19 +74,6 @@ async def create_dataset_endpoint(
 @app.get("/datasets/{dataset_id}")
 def get_dataset(dataset_id: int) -> dict:
     return get_dataset_by_id(dataset_id)
-
-
-@app.get("/datasets/{dataset_id}/records", response_model=Page[dict])
-def get_records(
-    dataset_id: int,
-    start: Optional[datetime] = Query(None, description="Start datetime for filtering records"),
-    end: Optional[datetime] = Query(None, description="End datetime for filtering records"),
-):
-    records_data = get_filtered_dataset_records(dataset_id, start, end)
-    return paginate(records_data)
-
-
-add_pagination(app)
 
 
 @app.put("/datasets/{dataset_id}")
