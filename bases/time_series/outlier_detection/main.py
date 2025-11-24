@@ -1,18 +1,38 @@
 import logging
 from datetime import datetime
+from typing import Optional, TypeVar
 
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi_pagination import Page, add_pagination, paginate
+from fastapi_pagination.customization import CustomizedPage, UseParamsFields
+from starlette.middleware.cors import CORSMiddleware
 from time_series.dataset_service import (
     add_data_to_dataset,
     create_dataset,
     delete_dataset,
     get_all_datasets,
     get_dataset_by_id,
+    get_filtered_dataset_records,
 )
 from time_series.greeting import hello_world
 
 logger = logging.getLogger("rest-api")
 app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["localhost", "http://localhost:3000"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+T = TypeVar("T")
+CustomPage = CustomizedPage[
+    Page[T],
+    UseParamsFields(size=Query(100, ge=1, le=10000)),
+]
 
 
 @app.get("/")
@@ -75,3 +95,16 @@ def delete_dataset_endpoint(dataset_id: int) -> dict:
         return {"message": "Dataset deleted successfully", "dataset_id": dataset_id}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.get("/datasets/{dataset_id}/records")
+async def get_records(
+    dataset_id: int,
+    start: Optional[datetime] = Query(None, description="Start datetime for filtering records"),
+    end: Optional[datetime] = Query(None, description="End datetime for filtering records"),
+) -> CustomPage[dict]:
+    records_data = get_filtered_dataset_records(dataset_id, start, end)
+    return paginate(records_data)
+
+
+add_pagination(app)
