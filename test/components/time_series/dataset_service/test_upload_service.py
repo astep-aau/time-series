@@ -207,3 +207,22 @@ def test_create_dataset_without_start_date(mock_dataset_repo, mock_datapoint_rep
     with pytest.raises(TypeError):
         create_dataset(name="No Start Date Dataset", dataset_repo=mock_dataset_repo, datapoint_repo=mock_datapoint_repo)
     mock_dataset_repo.create.assert_not_called()
+
+
+def test_create_dataset_with_invalid_csv(mock_dataset_repo, mock_datapoint_repo):
+    from time_series.dataset_service.upload_service import create_dataset
+
+    invalid_csv_content = """x, y
+1761122529,-0.69516194"""
+
+    with pytest.raises(ValueError, match="CSV must contain 'unix_time' and 'values' columns"):
+        create_dataset(
+            name="Invalid CSV Dataset",
+            start_date=datetime.now(),
+            csv_content=invalid_csv_content,
+            dataset_repo=mock_dataset_repo,
+            datapoint_repo=mock_datapoint_repo,
+        )
+    mock_dataset_repo.create.assert_not_called()
+
+    mock_datapoint_repo.bulk_create.assert_not_called()

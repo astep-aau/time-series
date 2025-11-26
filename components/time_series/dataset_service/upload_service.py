@@ -15,6 +15,9 @@ def parse_csv_content(csv_content: str) -> list[dict]:
     csv_file = StringIO(csv_content)
     reader = csv.DictReader(csv_file)
 
+    if not reader.fieldnames or "unix_time" not in reader.fieldnames or "values" not in reader.fieldnames:
+        raise ValueError("CSV must contain 'unix_time' and 'values' columns")
+
     for row in reader:
         unix_time = int(row["unix_time"])
         value = float(row["values"])
@@ -70,6 +73,12 @@ def create_dataset(
     existing_dataset = dataset_repo.get_by_name(name)
     if existing_dataset:
         raise ValueError(f"Dataset with name '{name}' already exists")
+
+    if csv_content.strip():
+        try:
+            parse_csv_content(csv_content)
+        except ValueError as e:
+            raise e
 
     dataset = dataset_repo.create(name=name, start_date=start_date, description=description)
 
