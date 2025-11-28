@@ -1,0 +1,42 @@
+[project]
+name = "forecasting"
+version = "0.1.0"
+dependencies = [
+    "fastapi>0",
+    "sqlmodel>0",
+    "uvicorn>0",
+    "python-multipart>0",
+    "numpy>0",
+    "python-weather>0",
+    "tensorflow>0"
+]
+
+[dependency-groups]
+dev = [
+    "poethepoet>0",
+]
+
+[tool.poe.tasks]
+container-build = "podman build -t forecasting:latest -f Containerfile ../.."
+container-run = "podman run -it --name forecasting forecasting:latest -p 8000:8000"
+
+serve = "uvicorn --reload time_series.forecasting.main:app"
+
+[build-system]
+requires = ["hatchling", "hatch-polylith-bricks"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.hooks.polylith-bricks]
+# This section is needed for the Hatchling build backend, to activate the polylith build hook.
+
+#[tool.hatch.build.targets.wheel]
+#packages = ["time_series"]
+# This section is needed for building
+
+[tool.polylith.bricks]
+"../../bases/time_series/forecasting" = "time_series/forecasting"
+"../../components/time_series/greeting" = "time_series/greeting"
+"../../components/time_series/model" = "time_series/model"
+"../../components/time_series/dataset_service" = "time_series/dataset_service"
+"../../components/time_series/database" = "time_series/database"
+"../../components/time_series/forecast" = "time_series/forecast"
