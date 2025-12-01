@@ -13,8 +13,12 @@ from time_series.database import (
 
 @pytest.fixture(scope="function")
 def test_engine():
-    engine = create_engine("sqlite:///:memory:", echo=False)
+    engine = create_engine("sqlite:///file:memdb?mode=memory&cache=shared&uri=true", echo=False)
+    with engine.connect() as conn:
+        conn.exec_driver_sql("ATTACH DATABASE ':memory:' AS timeseries")
+        conn.commit()
     SQLModel.metadata.create_all(engine)
+
     yield engine
     engine.dispose()
 
