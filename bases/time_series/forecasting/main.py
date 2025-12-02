@@ -3,7 +3,7 @@ from datetime import datetime
 
 from fastapi import FastAPI, HTTPException, Query
 from pydantic import BaseModel
-from time_series.forecast import get_all_datasets, predict
+from time_series.forecast import add_prediction, get_all_datasets, predict
 
 logger = logging.getLogger("rest-api")
 app = FastAPI()
@@ -28,7 +28,13 @@ def create_dataset_endpoint(query: prediction_query) -> list:
         )
     try:
         predicted_values = predict(user_data=query.user_data, city=query.city)
-        # add_prediction(name=query.name, date=parsed_date, user_data=query, prediction=predicted_values) #TODO:
+        try:
+            add_prediction(name=query.name, date=parsed_date, user_data=query, prediction=predicted_values)
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to save data to database. Prediction: {predicted_values}. Unexpected error.",
+            )
         return predicted_values
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
