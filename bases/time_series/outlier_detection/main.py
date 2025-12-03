@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Optional, TypeVar
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi_pagination import Page, add_pagination, paginate
+from fastapi_pagination import Page, Params, add_pagination, paginate
 from fastapi_pagination.customization import CustomizedPage, UseParamsFields
 from starlette.middleware.cors import CORSMiddleware
 from time_series.dataset_service import (
@@ -11,6 +11,8 @@ from time_series.dataset_service import (
     create_dataset,
     delete_dataset,
     get_all_datasets,
+    get_analyses,
+    get_anomalous_ranges,
     get_dataset_by_id,
     get_filtered_dataset_records,
 )
@@ -96,6 +98,36 @@ async def get_records(
 ) -> CustomPage[dict]:
     records_data = get_filtered_dataset_records(dataset_id, start, end)
     return paginate(records_data)
+
+
+@app.get("/datasets/{dataset_id}/analyses")
+async def get_analyses_for_dataset(dataset_id: int) -> dict:
+    return {"analyses": get_analyses(dataset_id)}
+
+
+@app.get("/analyses/{analysis_id}")
+async def get_anomalous_ranges_endpoint(
+    analysis_id: int,
+    params: Params = Query(),
+) -> dict:
+    result = get_anomalous_ranges(analysis_id)
+    dataset_id = result["dataset_id"]
+    items = result["items"]
+
+    total = len(items)
+    start_idx = (params.page - 1) * params.size
+    end_idx = start_idx + params.size
+    paginated_items = items[start_idx:end_idx]
+    pages = (total + params.size - 1) // params.size
+
+    return {
+        "items": paginated_items,
+        "total": total,
+        "page": params.page,
+        "size": params.size,
+        "pages": pages,
+        "dataset_id": dataset_id,
+    }
 
 
 add_pagination(app)

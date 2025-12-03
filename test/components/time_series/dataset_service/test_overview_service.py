@@ -110,3 +110,107 @@ def test_get_dataset_records_with_date_range(mock_datapoint_repo_with_values):
 
     assert isinstance(result, list)
     assert len(result) == 5
+
+
+# Mock Analysis class
+class MockAnalysis:
+    def __init__(self, id, dataset_id, model, name, description=None):
+        self.id = id
+        self.dataset_id = dataset_id
+        self.model = model
+        self.name = name
+        self.description = description
+
+
+# Mock Anomaly class
+class MockAnomaly:
+    def __init__(self, id, analysis_id, start, end):
+        self.id = id
+        self.analysis_id = analysis_id
+        self.start = start
+        self.end = end
+
+
+@pytest.fixture
+def mock_analysis_repo():
+    repo = Mock()
+    analyses = [
+        MockAnalysis(1, 1, "IsolationForest", "Analysis 1", "First analysis"),
+        MockAnalysis(2, 1, "LOF", "Analysis 2", "Second analysis"),
+        MockAnalysis(3, 2, "DBSCAN", "Analysis 3", None),
+    ]
+    repo.get_by_dataset.side_effect = lambda dataset_id: [a for a in analyses if a.dataset_id == dataset_id]
+    repo.get_by_id.side_effect = lambda id: next((a for a in analyses if a.id == id), None)
+    return repo
+
+
+@pytest.fixture
+def mock_anomaly_repo():
+    repo = Mock()
+    anomalies = [
+        MockAnomaly(1, 1, datetime(2024, 1, 1, 10, 0), datetime(2024, 1, 1, 11, 0)),
+        MockAnomaly(2, 1, datetime(2024, 1, 1, 15, 0), datetime(2024, 1, 1, 16, 0)),
+        MockAnomaly(3, 1, datetime(2024, 1, 1, 20, 0), datetime(2024, 1, 1, 21, 0)),
+        MockAnomaly(4, 2, datetime(2024, 1, 2, 10, 0), datetime(2024, 1, 2, 11, 0)),
+    ]
+    repo.get_by_analysis.side_effect = lambda analysis_id: [a for a in anomalies if a.analysis_id == analysis_id]
+    return repo
+
+
+def test_get_analyses(mock_analysis_repo):
+    from time_series.dataset_service.overview_service import get_analyses
+
+    result = get_analyses(1, analysis_repo=mock_analysis_repo)
+
+    assert isinstance(result, list)
+    assert len(result) == 2
+    assert result[0]["id"] == 1
+    assert result[0]["detection_method"] == "IsolationForest"
+    assert result[0]["name"] == "Analysis 1"
+    assert result[0]["description"] == "First analysis"
+    assert result[1]["id"] == 2
+    assert result[1]["detection_method"] == "LOF"
+
+
+def test_get_analyses_empty_dataset(mock_analysis_repo):
+    from time_series.dataset_service.overview_service import get_analyses
+
+    result = get_analyses(999, analysis_repo=mock_analysis_repo)
+
+    assert isinstance(result, list)
+    assert len(result) == 0
+
+
+def test_get_anomalous_ranges(mock_analysis_repo, mock_anomaly_repo):
+    from time_series.dataset_service.overview_service import get_anomalous_ranges
+
+    result = get_anomalous_ranges(1, analysis_repo=mock_analysis_repo, anomaly_repo=mock_anomaly_repo)
+
+    assert isinstance(result, dict)
+    assert result["dataset_id"] == 1
+    assert "items" in result
+    assert len(result["items"]) == 3
+    assert result["items"][0]["start"] == "2024-01-01T10:00:00"
+    assert result["items"][0]["end"] == "2024-01-01T11:00:00"
+    assert result["items"][1]["start"] == "2024-01-01T15:00:00"
+    assert result["items"][2]["start"] == "2024-01-01T20:00:00"
+
+
+def test_get_anomalous_ranges_analysis_not_found(mock_analysis_repo, mock_anomaly_repo):
+    from time_series.dataset_service.overview_service import get_anomalous_ranges
+
+    result = get_anomalous_ranges(999, analysis_repo=mock_analysis_repo, anomaly_repo=mock_anomaly_repo)
+
+    assert isinstance(result, dict)
+    assert result["dataset_id"] is None
+    assert result["items"] == []
+
+
+def test_get_anomalous_ranges_no_anomalies(mock_analysis_repo, mock_anomaly_repo):
+    from time_series.dataset_service.overview_service import get_anomalous_ranges
+
+    result = get_anomalous_ranges(3, analysis_repo=mock_analysis_repo, anomaly_repo=mock_anomaly_repo)
+
+    assert isinstance(result, dict)
+    assert result["dataset_id"] == 2
+    assert result["items"] == []
