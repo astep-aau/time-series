@@ -4,13 +4,15 @@ from typing import Optional, TypeVar
 
 from fastapi import FastAPI, HTTPException, Query, Request
 from fastapi_pagination import Page, add_pagination, paginate
-from fastapi_pagination.customization import CustomizedPage, UseParamsFields
+from fastapi_pagination.customization import CustomizedPage, UseAdditionalFields, UseParamsFields
 from starlette.middleware.cors import CORSMiddleware
 from time_series.dataset_service import (
     add_data_to_dataset,
     create_dataset,
     delete_dataset,
     get_all_datasets,
+    get_analyses,
+    get_anomalous_ranges,
     get_dataset_by_id,
     get_filtered_dataset_records,
 )
@@ -29,9 +31,13 @@ app.add_middleware(
 )
 
 T = TypeVar("T")
-CustomPage = CustomizedPage[
+DatapointsPage = CustomizedPage[
     Page[T],
     UseParamsFields(size=Query(100, ge=1, le=10000)),
+]
+
+RangesPage = CustomizedPage[
+    Page[T], UseParamsFields(size=Query(100, ge=1, le=10000)), UseAdditionalFields(dataset_id=int)
 ]
 
 
@@ -93,9 +99,21 @@ async def get_records(
     dataset_id: int,
     start: Optional[datetime] = Query(None, description="Start datetime for filtering records"),
     end: Optional[datetime] = Query(None, description="End datetime for filtering records"),
-) -> CustomPage[dict]:
+) -> DatapointsPage[dict]:
     records_data = get_filtered_dataset_records(dataset_id, start, end)
     return paginate(records_data)
+
+
+@app.get("/datasets/{dataset_id}/analyses")
+async def get_analyses_for_dataset(dataset_id: int) -> dict:
+    return {"analyses": get_analyses(dataset_id)}
+
+
+@app.get("/analyses/{analysis_id}")
+async def get_anomalous_ranges_endpoint(analysis_id: int) -> RangesPage[dict]:
+    result = get_anomalous_ranges(analysis_id)
+    items = paginate(result["items"], additional_data=({"dataset_id": result["dataset_id"]}))
+    return items
 
 
 add_pagination(app)

@@ -115,7 +115,7 @@ class AnalysisRepository:
     def create(
         self,
         dataset_id: int,
-        model: str,
+        detection_method: str,
         name: str,
         description: Optional[str] = None,
     ) -> Analysis:
@@ -123,7 +123,7 @@ class AnalysisRepository:
         with Session(self.engine) as session:
             analysis = Analysis(
                 dataset_id=dataset_id,
-                model=model,
+                detection_method=detection_method,
                 name=name,
                 description=description,
             )

@@ -36,7 +36,7 @@ class Analysis(SQLModel, table=True):
 
     id: Optional[int] = Field(default=None, primary_key=True)
     dataset_id: int = Field(foreign_key="timeseries.datasets.id", index=True)
-    model: str = Field(max_length=255)
+    detection_method: str = Field(max_length=255)
     name: str = Field(max_length=255)
     description: Optional[str] = None
 
