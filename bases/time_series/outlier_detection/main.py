@@ -3,8 +3,8 @@ from datetime import datetime
 from typing import Optional, TypeVar
 
 from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi_pagination import Page, Params, add_pagination, paginate
-from fastapi_pagination.customization import CustomizedPage, UseParamsFields
+from fastapi_pagination import Page, add_pagination, paginate
+from fastapi_pagination.customization import CustomizedPage, UseAdditionalFields, UseParamsFields
 from starlette.middleware.cors import CORSMiddleware
 from time_series.dataset_service import (
     add_data_to_dataset,
@@ -31,9 +31,13 @@ app.add_middleware(
 )
 
 T = TypeVar("T")
-CustomPage = CustomizedPage[
+DatapointsPage = CustomizedPage[
     Page[T],
     UseParamsFields(size=Query(100, ge=1, le=10000)),
+]
+
+RangesPage = CustomizedPage[
+    Page[T], UseParamsFields(size=Query(100, ge=1, le=10000)), UseAdditionalFields(dataset_id=int)
 ]
 
 
@@ -95,7 +99,7 @@ async def get_records(
     dataset_id: int,
     start: Optional[datetime] = Query(None, description="Start datetime for filtering records"),
     end: Optional[datetime] = Query(None, description="End datetime for filtering records"),
-) -> CustomPage[dict]:
+) -> DatapointsPage[dict]:
     records_data = get_filtered_dataset_records(dataset_id, start, end)
     return paginate(records_data)
 
@@ -106,28 +110,10 @@ async def get_analyses_for_dataset(dataset_id: int) -> dict:
 
 
 @app.get("/analyses/{analysis_id}")
-async def get_anomalous_ranges_endpoint(
-    analysis_id: int,
-    params: Params = Query(),
-) -> dict:
+async def get_anomalous_ranges_endpoint(analysis_id: int) -> RangesPage[dict]:
     result = get_anomalous_ranges(analysis_id)
-    dataset_id = result["dataset_id"]
-    items = result["items"]
-
-    total = len(items)
-    start_idx = (params.page - 1) * params.size
-    end_idx = start_idx + params.size
-    paginated_items = items[start_idx:end_idx]
-    pages = (total + params.size - 1) // params.size
-
-    return {
-        "items": paginated_items,
-        "total": total,
-        "page": params.page,
-        "size": params.size,
-        "pages": pages,
-        "dataset_id": dataset_id,
-    }
+    items = paginate(result["items"], additional_data=({"dataset_id": result["dataset_id"]}))
+    return items
 
 
 add_pagination(app)
