@@ -13,9 +13,9 @@ class DatasetRepository:
     def __init__(self, engine=None):
         self.engine = engine or default_engine
 
-    def create(self, name: str, start_date: datetime, description: Optional[str] = None) -> Dataset:
+    def create(self, name: str, description: Optional[str] = None) -> Dataset:
         with Session(self.engine) as session:
-            dataset = Dataset(name=name, start_date=start_date, description=description)
+            dataset = Dataset(name=name, description=description)
             session.add(dataset)
             session.commit()
             session.refresh(dataset)
