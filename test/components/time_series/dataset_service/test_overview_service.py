@@ -114,10 +114,10 @@ def test_get_dataset_records_with_date_range(mock_datapoint_repo_with_values):
 
 # Mock Analysis class
 class MockAnalysis:
-    def __init__(self, id, dataset_id, model, name, description=None):
+    def __init__(self, id, dataset_id, detection_method, name, description=None):
         self.id = id
         self.dataset_id = dataset_id
-        self.model = model
+        self.detection_method = detection_method
         self.name = name
         self.description = description
 

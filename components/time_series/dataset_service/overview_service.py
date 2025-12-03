@@ -90,7 +90,7 @@ def get_analyses(dataset_id: int, analysis_repo=None) -> List[Dict]:
     return [
         {
             "id": analysis.id,
-            "detection_method": analysis.model,
+            "detection_method": analysis.detection_method,
             "name": analysis.name,
             "description": analysis.description,
         }
