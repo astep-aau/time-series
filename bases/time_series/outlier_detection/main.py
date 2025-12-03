@@ -50,22 +50,13 @@ def get_datasets() -> dict:
 async def create_dataset_endpoint(
     request: Request,
     name: str = Query(description="Name of the dataset"),
-    start_date: str = Query(description="Start date in ISO format."),
     description: str = Query(None, description="Description of the dataset"),
 ) -> dict:
-    try:
-        parsed_start_date = datetime.fromisoformat(start_date)
-    except ValueError:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid start_date format: {start_date}. Expected ISO format.",
-        )
-
     csv_content = await request.body()
     csv_text = csv_content.decode("utf-8") if csv_content else ""
 
     try:
-        result = create_dataset(name=name, start_date=parsed_start_date, description=description, csv_content=csv_text)
+        result = create_dataset(name=name, description=description, csv_content=csv_text)
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))

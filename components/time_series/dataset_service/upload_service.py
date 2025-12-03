@@ -62,7 +62,6 @@ def add_data_to_dataset(
 
 def create_dataset(
     name: str,
-    start_date: datetime,
     description: Optional[str] = None,
     csv_content: str = "",
     dataset_repo: Optional[DatasetRepository] = None,
@@ -80,7 +79,7 @@ def create_dataset(
         except ValueError as e:
             raise e
 
-    dataset = dataset_repo.create(name=name, start_date=start_date, description=description)
+    dataset = dataset_repo.create(name=name, description=description)
 
     if not dataset or not dataset.id:
         raise ValueError("Failed to create dataset")

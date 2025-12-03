@@ -17,7 +17,6 @@ def get_all_datasets(dataset_repo=None, datapoint_repo=None) -> List[Dict]:
             "id": dataset.id,
             "name": dataset.name,
             "num_entries": len(datapoints),
-            "start_date": dataset.start_date.isoformat() if dataset.start_date else None,
         }
         result.append(dataset_info)
     return result
