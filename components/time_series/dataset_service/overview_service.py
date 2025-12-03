@@ -1,7 +1,12 @@
 from datetime import datetime
 from typing import Dict, List, Optional
 
-from time_series.database.repository import DatapointRepository, DatasetRepository
+from time_series.database.repository import (
+    AnalysisRepository,
+    AnomalyRepository,
+    DatapointRepository,
+    DatasetRepository,
+)
 
 
 def get_all_datasets(dataset_repo=None, datapoint_repo=None) -> List[Dict]:
@@ -77,3 +82,40 @@ def get_filtered_dataset_records(
         }
         for r in records
     ]
+
+
+def get_analyses(dataset_id: int, analysis_repo=None) -> List[Dict]:
+    analysis_repo = analysis_repo or AnalysisRepository()
+    analyses = analysis_repo.get_by_dataset(dataset_id)
+
+    return [
+        {
+            "id": analysis.id,
+            "detection_method": analysis.model,
+            "name": analysis.name,
+            "description": analysis.description,
+        }
+        for analysis in analyses
+    ]
+
+
+def get_anomalous_ranges(analysis_id: int, analysis_repo=None, anomaly_repo=None) -> Dict:
+    analysis_repo = analysis_repo or AnalysisRepository()
+    anomaly_repo = anomaly_repo or AnomalyRepository()
+
+    analysis = analysis_repo.get_by_id(analysis_id)
+    if not analysis:
+        return {"dataset_id": None, "items": []}
+
+    anomalies = anomaly_repo.get_by_analysis(analysis_id)
+
+    return {
+        "dataset_id": analysis.dataset_id,
+        "items": [
+            {
+                "start": anomaly.start.isoformat(),
+                "end": anomaly.end.isoformat(),
+            }
+            for anomaly in anomalies
+        ],
+    }
