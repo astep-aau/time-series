@@ -40,7 +40,6 @@ def sample_dataset(dataset_repo):
     """Create a sample dataset for testing"""
     dataset = dataset_repo.create(
         name=f"Test Dataset {datetime.now().timestamp()}",
-        start_date=datetime.now(),
         description="Test dataset",
     )
     yield dataset
@@ -107,7 +106,6 @@ class TestDatasetRepositry:
         """Test creating a dataset"""
         dataset = dataset_repo.create(
             name=f"Test Dataset {datetime.now().timestamp()}",
-            start_date=datetime.now(),
             description="This is a test dataset",
         )
 
@@ -236,7 +234,6 @@ class TestCascadeDelete:
         # Create a dataset
         dataset = dataset_repo.create(
             name=f"Cascade Test {datetime.now().timestamp()}",
-            start_date=datetime.now(),
             description="Testing cascade delete",
         )
 
@@ -393,11 +390,9 @@ class TestAnalysisRepositoryRead:
         """Test that get_by_dataset only returns analyses for that specific dataset"""
         dataset1 = dataset_repo.create(
             name=f"Dataset_1_{datetime.now().timestamp()}",
-            start_date=datetime.now(),
         )
         dataset2 = dataset_repo.create(
             name=f"Dataset_2_{datetime.now().timestamp()}",
-            start_date=datetime.now(),
         )
 
         # Create analyses for dataset1
@@ -726,11 +721,9 @@ class TestAnalysisEdgeCases:
         """Test that different datasets can have analyses with the same name"""
         dataset1 = dataset_repo.create(
             name=f"Dataset_1_{datetime.now().timestamp()}",
-            start_date=datetime.now(),
         )
         dataset2 = dataset_repo.create(
             name=f"Dataset_2_{datetime.now().timestamp()}",
-            start_date=datetime.now(),
         )
 
         analysis1 = analysis_repo.create(
