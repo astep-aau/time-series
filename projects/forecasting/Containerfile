@@ -25,6 +25,8 @@ FROM python:3.13-slim AS runtime
 WORKDIR /app
 
 # Copy built wheel from build stage
+RUN pip install --no-cache-dir psycopg2-binary
+
 COPY --from=build /app/dist/*.whl ./
 
 # Install the wheel
@@ -37,4 +39,4 @@ RUN pip install --no-cache-dir python-multipart
 EXPOSE 8000
 
 # Start FastAPI
-CMD ["uvicorn", "time_series.forecasting.serve:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "time_series.forecasting.main:app", "--host", "0.0.0.0", "--port", "8000"]

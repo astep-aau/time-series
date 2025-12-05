@@ -27,6 +27,8 @@ WORKDIR /app
 COPY --from=builder /app/dist/*.whl ./
 
 # Install the wheel
+RUN pip install --no-cache-dir psycopg2-binary
+
 RUN pip install --no-cache-dir ./*.whl
 
 # Start Time-series API
