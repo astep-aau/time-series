@@ -1,13 +1,11 @@
 from .engine import engine
-from .models import Anomaly, AnomalyType, Datapoint, Dataset, PredictionDatapoint, PredictionDataset, PredictionResult
+from .models import Anomaly, AnomalyType, Datapoint, Dataset, Prediction
 from .repository import (
     AnalysisRepository,
     AnomalyRepository,
     DatapointRepository,
     DatasetRepository,
-    PredictionDatapointRepository,
     PredictionRepository,
-    PredictionResultRepository,
 )
 
 __all__ = [
@@ -20,10 +18,6 @@ __all__ = [
     "AnomalyType",
     "Anomaly",
     "AnalysisRepository",
-    "PredictionDataset",
-    "PredictionDatapoint",
-    "PredictionResult",
+    "Prediction",
     "PredictionRepository",
-    "PredictionDatapointRepository",
-    "PredictionResultRepository",
 ]
