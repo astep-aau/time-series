@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 import pytest
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 from time_series.database import (
     AnalysisRepository,
     AnomalyRepository,
@@ -24,29 +24,38 @@ def test_engine():
 
 
 @pytest.fixture
-def dataset_repo(test_engine):
+def test_session(test_engine):
+    """Create a test database session"""
+    with Session(test_engine) as session:
+        yield session
+        session.rollback()
+
+
+@pytest.fixture
+def dataset_repo(test_session):
     """Create a DatasetRepository instance"""
-    return DatasetRepository(engine=test_engine)
+    return DatasetRepository(session=test_session)
 
 
 @pytest.fixture
-def datapoint_repo(test_engine):
+def datapoint_repo(test_session):
     """Create a DatapointRepository instance"""
-    return DatapointRepository(engine=test_engine)
+    return DatapointRepository(session=test_session)
 
 
 @pytest.fixture
-def sample_dataset(dataset_repo):
+def sample_dataset(dataset_repo, test_session):
     """Create a sample dataset for testing"""
     dataset = dataset_repo.create(
         name=f"Test Dataset {datetime.now().timestamp()}",
         description="Test dataset",
     )
+    test_session.commit()
     yield dataset
 
 
 @pytest.fixture
-def dataset_with_datapoints(sample_dataset, datapoint_repo):
+def dataset_with_datapoints(sample_dataset, datapoint_repo, test_session):
     """Create a dataset with sample datapoints"""
     base_time = datetime(2024, 1, 1, 12, 0, 0)
     datapoints = [
@@ -54,23 +63,24 @@ def dataset_with_datapoints(sample_dataset, datapoint_repo):
         for i in range(10)
     ]
     datapoint_repo.bulk_create(datapoints)
+    test_session.commit()
     yield sample_dataset
 
 
 @pytest.fixture
-def analysis_repo(test_engine):
+def analysis_repo(test_session):
     """Create an AnalysisRepository instance"""
-    return AnalysisRepository(engine=test_engine)
+    return AnalysisRepository(session=test_session)
 
 
 @pytest.fixture
-def anomaly_repo(test_engine):
+def anomaly_repo(test_session):
     """Create an AnomalyRepository instance"""
-    return AnomalyRepository(engine=test_engine)
+    return AnomalyRepository(session=test_session)
 
 
 @pytest.fixture
-def sample_analysis(sample_dataset, analysis_repo):
+def sample_analysis(sample_dataset, analysis_repo, test_session):
     """Create a sample analysis"""
     analysis = analysis_repo.create(
         dataset_id=sample_dataset.id,
@@ -78,11 +88,12 @@ def sample_analysis(sample_dataset, analysis_repo):
         name=f"IF_Analysis_{datetime.now().timestamp()}",
         description="Isolation Forest anomaly detection",
     )
+    test_session.commit()
     yield analysis
 
 
 @pytest.fixture
-def analysis_with_anomalies(sample_analysis, anomaly_repo):
+def analysis_with_anomalies(sample_analysis, anomaly_repo, test_session):
     """Create an analysis with sample anomalies"""
     base_time = datetime(2024, 1, 1, 12, 0, 0)
     anomalies = [
@@ -96,6 +107,7 @@ def analysis_with_anomalies(sample_analysis, anomaly_repo):
         for i in range(5)
     ]
     anomaly_repo.bulk_create(anomalies)
+    test_session.commit()
     yield sample_analysis
 
 
