@@ -3,21 +3,21 @@ from datetime import datetime
 from typing import Optional, TypeVar
 
 from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.responses import RedirectResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from fastapi_pagination.customization import CustomizedPage, UseAdditionalFields, UseParamsFields
 from sqlmodel import Session
 from starlette.middleware.cors import CORSMiddleware
-from time_series.database.engine import engine
+from time_series.database.engine import ENGINE
 from time_series.database.unit_of_work import UnitOfWork
 from time_series.dataset_service import OverviewService, UploadService
-from time_series.greeting import hello_world
 
 logger = logging.getLogger("rest-api")
 app = FastAPI()
 
 
 def get_session():
-    with Session(engine) as session:
+    with Session(ENGINE) as session:
         yield session
 
 
@@ -48,10 +48,9 @@ RangesPage = CustomizedPage[
 ]
 
 
-@app.get("/")
-def root() -> dict:
-    logger.info("fastapi root endpoint was called")
-    return {"message": hello_world()}
+@app.get("/", include_in_schema=False)
+async def docs_redirect():
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/datasets")

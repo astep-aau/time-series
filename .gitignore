@@ -209,3 +209,6 @@ development/nasa_sensor_0_standardized.csv
 
 # .idea
 .idea/
+
+# ignore dotenv
+.env

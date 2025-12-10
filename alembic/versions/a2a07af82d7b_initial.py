@@ -9,7 +9,6 @@ Create Date: 2025-12-01 13:21:45.958999
 from typing import Sequence, Union
 
 import sqlalchemy as sa
-import sqlmodel
 
 from alembic import op
 
@@ -26,9 +25,9 @@ def upgrade() -> None:
     op.create_table(
         "datasets",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
         sa.Column("start_date", sa.DateTime(), nullable=False),
-        sa.Column("description", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("description", sa.String(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         schema="timeseries",
     )
@@ -37,9 +36,9 @@ def upgrade() -> None:
         "analyses",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("dataset_id", sa.Integer(), nullable=False),
-        sa.Column("model", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
-        sa.Column("name", sqlmodel.sql.sqltypes.AutoString(length=255), nullable=False),
-        sa.Column("description", sqlmodel.sql.sqltypes.AutoString(), nullable=True),
+        sa.Column("model", sa.String(length=255), nullable=False),
+        sa.Column("name", sa.String(length=255), nullable=False),
+        sa.Column("description", sa.String(), nullable=True),
         sa.ForeignKeyConstraint(
             ["dataset_id"],
             ["timeseries.datasets.id"],
@@ -93,4 +92,5 @@ def downgrade() -> None:
     op.drop_table("analyses", schema="timeseries")
     op.drop_index(op.f("ix_timeseries_datasets_name"), table_name="datasets", schema="timeseries")
     op.drop_table("datasets", schema="timeseries")
+    op.execute("DROP TYPE IF EXISTS timeseries.anomalytype;")
     # ### end Alembic commands ###
