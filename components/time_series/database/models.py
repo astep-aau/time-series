@@ -38,7 +38,9 @@ class Analysis(SQLModel, table=True):
 
     dataset: Optional[Dataset] = Relationship(back_populates="analyses")
     anomalies: list["Anomaly"] = Relationship(back_populates="analysis", cascade_delete=True)
-    predictions: list["Prediction"] = Relationship(back_populates="analyses", cascade_delete=True)
+
+    # FIXED: This line must be indented inside the class
+    predictions: list["Prediction"] = Relationship(back_populates="analysis", cascade_delete=True)
 
 
 class AnomalyType(str, Enum):
@@ -59,25 +61,6 @@ class Anomaly(SQLModel, table=True):
     analysis: Optional[Analysis] = Relationship(back_populates="anomalies")
 
 
-# class PredictionDataset(SQLModel, table=True):
-#     __tablename__ = "predictions"
-
-#     id: Optional[int] = Field(default=None, primary_key=True)
-#     name: str = Field(unique=True, max_length=255, index=True)
-#     date: datetime
-#     datapoints: list["PredictionDatapoint"] = Relationship(back_populates="predictions", cascade_delete=True)
-#     results: list["PredictionResult"] = Relationship(back_populates="predictions", cascade_delete=True)
-
-
-# class Predictionatapoint(SQLModel, table=True):
-#     __tablename__ = "prediction_datapoints"
-
-#     dataset_id: int = Field(foreign_key="predictions.id", primary_key=True)
-#     time: datetime = Field(primary_key=True)
-#     value: float
-#     dataset: Optional[PredictionDataset] = Relationship(back_populates="predictions")
-
-
 class Prediction(SQLModel, table=True):
     __tablename__ = "prediction_results"
 
@@ -85,4 +68,4 @@ class Prediction(SQLModel, table=True):
     time: datetime = Field(primary_key=True)
     value: float
 
-    dataset: Optional[Analysis] = Relationship(back_populates="predictions")
+    analysis: Optional[Analysis] = Relationship(back_populates="predictions")

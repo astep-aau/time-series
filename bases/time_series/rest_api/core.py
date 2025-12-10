@@ -18,11 +18,12 @@ from time_series.rest_api.requestModels import PredictionCreateRequest
 logger = logging.getLogger("rest-api")
 app = FastAPI()
 
+app.debug = True
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT", "DELETE"],
+    allow_methods=["*"],
     allow_headers=["*"],
 )
 
@@ -99,7 +100,7 @@ def get_analysis(dataset_id: int) -> List[dict]:
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.post("analysis/predictions")
+@app.post("/analysis/predictions")
 def create_prediction(req: PredictionCreateRequest):
     try:
         # 1. Run your ML model to get forecast list

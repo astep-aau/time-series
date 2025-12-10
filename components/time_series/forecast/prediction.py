@@ -8,7 +8,9 @@ from time_series.forecast.weather import get_todays_temp
 TIMESTEPS = 24
 
 
-def load_model_and_scalers(model_path="../../data/lstm_energy_model.keras", scaler_path="../../data/scalers.pkl"):
+def load_model_and_scalers(
+    model_path="../../data/lstm_energy_weather_model.keras", scaler_path="../../data/scalers.pkl"
+):
     model = load_model(model_path)
     with open(scaler_path, "rb") as f:
         scalers = pickle.load(f)

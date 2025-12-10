@@ -48,6 +48,10 @@ def get_all_predictions(dataset_id: int) -> List[dict]:
     prediction_repo = PredictionRepository()
 
     analyses = analysis_repo.get_by_dataset(dataset_id)
+
+    if not analyses:
+        raise ValueError(f"Dataset with id {dataset_id} not found")
+
     results = []
 
     for analysis in analyses:

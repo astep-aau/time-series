@@ -20,7 +20,7 @@ dev = [
 container-build = "podman build -t forecasting:latest -f Containerfile ../.."
 container-run = "podman run -it --name forecasting forecasting:latest -p 8000:8000"
 
-serve = "uvicorn --reload time_series.forecasting.main:app"
+# serve = "uvicorn --reload time_series.forecasting.main:app"
 
 [build-system]
 requires = ["hatchling", "hatch-polylith-bricks"]
@@ -29,12 +29,11 @@ build-backend = "hatchling.build"
 [tool.hatch.build.hooks.polylith-bricks]
 # This section is needed for the Hatchling build backend, to activate the polylith build hook.
 
-#[tool.hatch.build.targets.wheel]
-#packages = ["time_series"]
+[tool.hatch.build.targets.wheel]
+packages = ["time_series"]
 # This section is needed for building
 
 [tool.polylith.bricks]
-"../../bases/time_series/forecasting" = "time_series/forecasting"
 "../../components/time_series/greeting" = "time_series/greeting"
 "../../components/time_series/model" = "time_series/model"
 "../../components/time_series/dataset_service" = "time_series/dataset_service"

@@ -13,11 +13,20 @@ def parse_csv_content(csv_content: str) -> list[dict]:
         return datapoints
 
     csv_file = StringIO(csv_content)
+
     reader = csv.DictReader(csv_file)
 
     for row in reader:
-        unix_time = int(row["unix_time"])
-        value = float(row["values"])
+        # Skip empty or malformed rows
+        if not row or not row.get("unix_time") or not row.get("values"):
+            continue
+
+        try:
+            unix_time = int(row["unix_time"].strip())
+            value = float(row["values"].strip())
+        except Exception as e:
+            raise ValueError(f"Invalid row: {row} ({e})")
+
         time = datetime.fromtimestamp(unix_time)
 
         datapoints.append({"time": time, "value": value})
