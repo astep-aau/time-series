@@ -13,6 +13,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up dotenv
+        uses: falti/dotenv-action@v1.1.5
+        with:
+          path: .env.example
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
