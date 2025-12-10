@@ -93,4 +93,5 @@ def downgrade() -> None:
     op.drop_table("analyses", schema="timeseries")
     op.drop_index(op.f("ix_timeseries_datasets_name"), table_name="datasets", schema="timeseries")
     op.drop_table("datasets", schema="timeseries")
+    op.execute("DROP TYPE IF EXISTS timeseries.anomalytype;")
     # ### end Alembic commands ###
