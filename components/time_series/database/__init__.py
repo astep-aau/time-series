@@ -1,6 +1,7 @@
 from .engine import engine
 from .models import Anomaly, AnomalyType, Datapoint, Dataset
 from .repository import AnalysisRepository, AnomalyRepository, DatapointRepository, DatasetRepository
+from .unit_of_work import UnitOfWork
 
 __all__ = [
     "Dataset",
@@ -12,4 +13,5 @@ __all__ = [
     "AnomalyType",
     "Anomaly",
     "AnalysisRepository",
+    "UnitOfWork",
 ]
