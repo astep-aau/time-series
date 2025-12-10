@@ -3,6 +3,7 @@ from datetime import datetime
 from typing import Optional, TypeVar
 
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import RedirectResponse
 from fastapi_pagination import Page, add_pagination, paginate
 from fastapi_pagination.customization import CustomizedPage, UseAdditionalFields, UseParamsFields
 from starlette.middleware.cors import CORSMiddleware
@@ -16,7 +17,6 @@ from time_series.dataset_service import (
     get_dataset_by_id,
     get_filtered_dataset_records,
 )
-from time_series.greeting import hello_world
 
 logger = logging.getLogger("rest-api")
 app = FastAPI()
@@ -41,10 +41,9 @@ RangesPage = CustomizedPage[
 ]
 
 
-@app.get("/")
-def root() -> dict:
-    logger.info("fastapi root endpoint was called")
-    return {"message": hello_world()}
+@app.get("/", include_in_schema=False)
+async def docs_redirect():
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/datasets")

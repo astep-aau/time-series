@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from sqlmodel import Session, col, select
 
-from .engine import engine as default_engine
+from .engine import ENGINE as DEFAULT_ENGINE
 from .models import Analysis, Anomaly, AnomalyType, Datapoint, Dataset
 
 
@@ -11,7 +11,7 @@ class DatasetRepository:
     """Repository for dataset operations"""
 
     def __init__(self, engine=None):
-        self.engine = engine or default_engine
+        self.engine = engine or DEFAULT_ENGINE
 
     def create(self, name: str, description: Optional[str] = None) -> Dataset:
         with Session(self.engine) as session:
@@ -59,7 +59,7 @@ class DatapointRepository:
     """Repository for datapoint operations"""
 
     def __init__(self, engine=None):
-        self.engine = engine or default_engine
+        self.engine = engine or DEFAULT_ENGINE
 
     def create(self, dataset_id: int, time: datetime, value: float) -> Datapoint:
         with Session(self.engine) as session:
@@ -110,7 +110,7 @@ class AnalysisRepository:
     """Repository for analysis operations"""
 
     def __init__(self, engine=None):
-        self.engine = engine or default_engine
+        self.engine = engine or DEFAULT_ENGINE
 
     def create(
         self,
@@ -170,7 +170,7 @@ class AnomalyRepository:
     """Repository for anomaly operations"""
 
     def __init__(self, engine=None):
-        self.engine = engine or default_engine
+        self.engine = engine or DEFAULT_ENGINE
 
     def create(
         self,
