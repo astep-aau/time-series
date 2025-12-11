@@ -22,11 +22,15 @@ repos:
     hooks:
       - id: poly-check
         name: poly-check
-        entry: poly check
+        entry: poly
         language: python
         additional_dependencies:
           - polylith-cli>=1.35.0
         pass_filenames: false
+        args:
+          - check
+          - --alias
+          - python-dotenv=dotenv
 
   # Mypy
   - repo: https://github.com/pre-commit/mirrors-mypy

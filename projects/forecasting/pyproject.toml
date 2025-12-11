@@ -8,7 +8,8 @@ dependencies = [
     "python-multipart>0",
     "numpy>0",
     "python-weather>0",
-    "tensorflow>0"
+    "tensorflow>0",
+    "python-dotenv>=1.2.1",
 ]
 
 [dependency-groups]

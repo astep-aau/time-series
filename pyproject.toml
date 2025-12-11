@@ -8,17 +8,33 @@ license = "MIT"
 dependencies = [
     "alembic>=1.17.0",
     "fastapi>=0.118.0",
+    "fastapi-pagination>=0.15.0",
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.11.10",
     "sqlmodel>=0.0.25",
     "uvicorn>=0.37.0",
+    "torch>=2.7.0",
+    "torchvision>=0.22.0,<0.24.0",
+    "datasets>=4.4.1",
+    "matplotlib>=3.10.7",
+    "python-dotenv>=1.2.1",
 ]
 
 [tool.uv]
 managed = true
 
-#[tool.uv.sources]
-# Make workspace packages available to each other
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu" },
+]
+torchvision = [
+    { index = "pytorch-cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 # To support `--package`
 [tool.uv.workspace]
@@ -107,3 +123,6 @@ plugins = "pydantic.mypy"
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
+
+[tool.polylith.third_party]
+dotenv = "python-dotenv"

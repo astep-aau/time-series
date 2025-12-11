@@ -2,15 +2,17 @@ from datetime import datetime
 from enum import Enum
 from typing import Optional
 
+from sqlalchemy import Column
+from sqlalchemy import Enum as SQLAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
 
 class Dataset(SQLModel, table=True):
     __tablename__ = "datasets"
+    __table_args__ = {"schema": "timeseries"}
 
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, max_length=255, index=True)
-    start_date: datetime
     description: Optional[str] = None
 
     datapoints: list["Datapoint"] = Relationship(back_populates="dataset", cascade_delete=True)
@@ -19,8 +21,9 @@ class Dataset(SQLModel, table=True):
 
 class Datapoint(SQLModel, table=True):
     __tablename__ = "datapoints"
+    __table_args__ = {"schema": "timeseries"}
 
-    dataset_id: int = Field(foreign_key="datasets.id", primary_key=True)
+    dataset_id: int = Field(foreign_key="timeseries.datasets.id", primary_key=True)
     time: datetime = Field(primary_key=True)
     value: float
 
@@ -29,10 +32,11 @@ class Datapoint(SQLModel, table=True):
 
 class Analysis(SQLModel, table=True):
     __tablename__ = "analyses"
+    __table_args__ = {"schema": "timeseries"}
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    dataset_id: int = Field(foreign_key="datasets.id", index=True)
-    model: str = Field(max_length=255)
+    dataset_id: int = Field(foreign_key="timeseries.datasets.id", index=True)
+    detection_method: str = Field(max_length=255)
     name: str = Field(max_length=255)
     description: Optional[str] = None
 
@@ -50,14 +54,14 @@ class AnomalyType(str, Enum):
 
 class Anomaly(SQLModel, table=True):
     __tablename__ = "anomalies"
+    __table_args__ = {"schema": "timeseries"}
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    analysis_id: int = Field(foreign_key="analyses.id", index=True)
+    analysis_id: int = Field(foreign_key="timeseries.analyses.id", index=True)
     start: datetime
     end: datetime
-    type: AnomalyType
     validated: bool = Field(default=False)
-
+    type: AnomalyType = Field(sa_column=Column(SQLAEnum(AnomalyType, name="anomalytype", schema="timeseries")))
     analysis: Optional[Analysis] = Relationship(back_populates="anomalies")
 
 

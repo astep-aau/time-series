@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 import pytest
-from sqlmodel import SQLModel, create_engine
+from sqlmodel import Session, SQLModel, create_engine
 from time_series.database import (
     AnalysisRepository,
     AnomalyRepository,
@@ -13,37 +13,49 @@ from time_series.database import (
 
 @pytest.fixture(scope="function")
 def test_engine():
-    engine = create_engine("sqlite:///:memory:", echo=False)
+    engine = create_engine("sqlite:///file:memdb?mode=memory&cache=shared&uri=true", echo=False)
+    with engine.connect() as conn:
+        conn.exec_driver_sql("ATTACH DATABASE ':memory:' AS timeseries")
+        conn.commit()
     SQLModel.metadata.create_all(engine)
+
     yield engine
     engine.dispose()
 
 
 @pytest.fixture
-def dataset_repo(test_engine):
+def test_session(test_engine):
+    """Create a test database session"""
+    with Session(test_engine) as session:
+        yield session
+        session.rollback()
+
+
+@pytest.fixture
+def dataset_repo(test_session):
     """Create a DatasetRepository instance"""
-    return DatasetRepository(engine=test_engine)
+    return DatasetRepository(session=test_session)
 
 
 @pytest.fixture
-def datapoint_repo(test_engine):
+def datapoint_repo(test_session):
     """Create a DatapointRepository instance"""
-    return DatapointRepository(engine=test_engine)
+    return DatapointRepository(session=test_session)
 
 
 @pytest.fixture
-def sample_dataset(dataset_repo):
+def sample_dataset(dataset_repo, test_session):
     """Create a sample dataset for testing"""
     dataset = dataset_repo.create(
         name=f"Test Dataset {datetime.now().timestamp()}",
-        start_date=datetime.now(),
         description="Test dataset",
     )
+    test_session.commit()
     yield dataset
 
 
 @pytest.fixture
-def dataset_with_datapoints(sample_dataset, datapoint_repo):
+def dataset_with_datapoints(sample_dataset, datapoint_repo, test_session):
     """Create a dataset with sample datapoints"""
     base_time = datetime(2024, 1, 1, 12, 0, 0)
     datapoints = [
@@ -51,35 +63,37 @@ def dataset_with_datapoints(sample_dataset, datapoint_repo):
         for i in range(10)
     ]
     datapoint_repo.bulk_create(datapoints)
+    test_session.commit()
     yield sample_dataset
 
 
 @pytest.fixture
-def analysis_repo(test_engine):
+def analysis_repo(test_session):
     """Create an AnalysisRepository instance"""
-    return AnalysisRepository(engine=test_engine)
+    return AnalysisRepository(session=test_session)
 
 
 @pytest.fixture
-def anomaly_repo(test_engine):
+def anomaly_repo(test_session):
     """Create an AnomalyRepository instance"""
-    return AnomalyRepository(engine=test_engine)
+    return AnomalyRepository(session=test_session)
 
 
 @pytest.fixture
-def sample_analysis(sample_dataset, analysis_repo):
+def sample_analysis(sample_dataset, analysis_repo, test_session):
     """Create a sample analysis"""
     analysis = analysis_repo.create(
         dataset_id=sample_dataset.id,
-        model="IsolationForest",
+        detection_method="IsolationForest",
         name=f"IF_Analysis_{datetime.now().timestamp()}",
         description="Isolation Forest anomaly detection",
     )
+    test_session.commit()
     yield analysis
 
 
 @pytest.fixture
-def analysis_with_anomalies(sample_analysis, anomaly_repo):
+def analysis_with_anomalies(sample_analysis, anomaly_repo, test_session):
     """Create an analysis with sample anomalies"""
     base_time = datetime(2024, 1, 1, 12, 0, 0)
     anomalies = [
@@ -93,6 +107,7 @@ def analysis_with_anomalies(sample_analysis, anomaly_repo):
         for i in range(5)
     ]
     anomaly_repo.bulk_create(anomalies)
+    test_session.commit()
     yield sample_analysis
 
 
@@ -103,7 +118,6 @@ class TestDatasetRepositry:
         """Test creating a dataset"""
         dataset = dataset_repo.create(
             name=f"Test Dataset {datetime.now().timestamp()}",
-            start_date=datetime.now(),
             description="This is a test dataset",
         )
 
@@ -232,7 +246,6 @@ class TestCascadeDelete:
         # Create a dataset
         dataset = dataset_repo.create(
             name=f"Cascade Test {datetime.now().timestamp()}",
-            start_date=datetime.now(),
             description="Testing cascade delete",
         )
 
@@ -261,14 +274,14 @@ class TestAnalysisRepositoryCreate:
         """Test creating an analysis with all fields"""
         analysis = analysis_repo.create(
             dataset_id=sample_dataset.id,
-            model="LSTM_Autoencoder",
+            detection_method="LSTM_Autoencoder",
             name="LSTM_Test_Run_1",
             description="First test run with LSTM",
         )
 
         assert analysis.id is not None
         assert analysis.dataset_id == sample_dataset.id
-        assert analysis.model == "LSTM_Autoencoder"
+        assert analysis.detection_method == "LSTM_Autoencoder"
         assert analysis.name == "LSTM_Test_Run_1"
         assert analysis.description == "First test run with LSTM"
 
@@ -276,13 +289,13 @@ class TestAnalysisRepositoryCreate:
         """Test creating an analysis with only required fields"""
         analysis = analysis_repo.create(
             dataset_id=sample_dataset.id,
-            model="Z-Score",
+            detection_method="Z-Score",
             name="Z-Score_Run",
         )
 
         assert analysis.id is not None
         assert analysis.dataset_id == sample_dataset.id
-        assert analysis.model == "Z-Score"
+        assert analysis.detection_method == "Z-Score"
         assert analysis.name == "Z-Score_Run"
         assert analysis.description is None
 
@@ -294,7 +307,7 @@ class TestAnalysisRepositoryCreate:
         for model in models:
             analysis = analysis_repo.create(
                 dataset_id=sample_dataset.id,
-                model=model,
+                detection_method=model,
                 name=f"{model}_Run",
                 description=f"Test run for {model}",
             )
@@ -318,10 +331,10 @@ class TestAnalysisRepositoryCreate:
         for model in smap_models:
             analysis = analysis_repo.create(
                 dataset_id=sample_dataset.id,
-                model=model,
+                detection_method=model,
                 name=f"{model}_SMAP",
             )
-            assert analysis.model == model
+            assert analysis.detection_method == model
 
 
 class TestAnalysisRepositoryRead:
@@ -333,7 +346,7 @@ class TestAnalysisRepositoryRead:
 
         assert retrieved is not None
         assert retrieved.id == sample_analysis.id
-        assert retrieved.model == sample_analysis.model
+        assert retrieved.detection_method == sample_analysis.detection_method
         assert retrieved.name == sample_analysis.name
         assert retrieved.description == sample_analysis.description
 
@@ -360,7 +373,7 @@ class TestAnalysisRepositoryRead:
         for i in range(5):
             analysis = analysis_repo.create(
                 dataset_id=sample_dataset.id,
-                model="IsolationForest",
+                detection_method="IsolationForest",
                 name=f"Analysis_{i}",
                 description=f"Test analysis {i}",
             )
@@ -376,7 +389,7 @@ class TestAnalysisRepositoryRead:
         for i in range(5):
             analysis_repo.create(
                 dataset_id=sample_dataset.id,
-                model="Model",
+                detection_method="Model",
                 name=f"Analysis_{i}",
             )
 
@@ -389,18 +402,16 @@ class TestAnalysisRepositoryRead:
         """Test that get_by_dataset only returns analyses for that specific dataset"""
         dataset1 = dataset_repo.create(
             name=f"Dataset_1_{datetime.now().timestamp()}",
-            start_date=datetime.now(),
         )
         dataset2 = dataset_repo.create(
             name=f"Dataset_2_{datetime.now().timestamp()}",
-            start_date=datetime.now(),
         )
 
         # Create analyses for dataset1
         for i in range(3):
             analysis_repo.create(
                 dataset_id=dataset1.id,
-                model="Model_A",
+                detection_method="Model_A",
                 name=f"Dataset1_Analysis_{i}",
             )
 
@@ -408,7 +419,7 @@ class TestAnalysisRepositoryRead:
         for i in range(2):
             analysis_repo.create(
                 dataset_id=dataset2.id,
-                model="Model_B",
+                detection_method="Model_B",
                 name=f"Dataset2_Analysis_{i}",
             )
 
@@ -432,7 +443,7 @@ class TestAnalysisRepositoryUpdate:
         assert updated is not None
         assert updated.id == sample_analysis.id
         assert updated.description == new_description
-        assert updated.model == sample_analysis.model
+        assert updated.detection_method == sample_analysis.detection_method
         assert updated.name == sample_analysis.name
 
     def test_update_multiple_fields(self, sample_analysis, analysis_repo):
@@ -441,34 +452,34 @@ class TestAnalysisRepositoryUpdate:
             sample_analysis.id,
             name="Updated_Name",
             description="Updated description",
-            model="Updated_Model",
+            detection_method="Updated_Model",
         )
 
         assert updated is not None
         assert updated.id == sample_analysis.id
         assert updated.name == "Updated_Name"
         assert updated.description == "Updated description"
-        assert updated.model == "Updated_Model"
+        assert updated.detection_method == "Updated_Model"
 
     def test_update_name_only(self, sample_analysis, analysis_repo):
         """Test updating only the name"""
         original_description = sample_analysis.description
-        original_model = sample_analysis.model
+        original_model = sample_analysis.detection_method
 
         updated = analysis_repo.update(sample_analysis.id, name="New_Analysis_Name")
 
         assert updated.name == "New_Analysis_Name"
         assert updated.description == original_description
-        assert updated.model == original_model
+        assert updated.detection_method == original_model
 
     def test_update_model_only(self, sample_analysis, analysis_repo):
         """Test updating only the model"""
         original_name = sample_analysis.name
         original_description = sample_analysis.description
 
-        updated = analysis_repo.update(sample_analysis.id, model="NewModel")
+        updated = analysis_repo.update(sample_analysis.id, detection_method="NewModel")
 
-        assert updated.model == "NewModel"
+        assert updated.detection_method == "NewModel"
         assert updated.name == original_name
         assert updated.description == original_description
 
@@ -523,7 +534,7 @@ class TestAnalysisRepositoryDelete:
         for i in range(3):
             analysis = analysis_repo.create(
                 dataset_id=sample_dataset.id,
-                model="Model",
+                detection_method="Model",
                 name=f"Analysis_{i}",
             )
             analyses.append(analysis)
@@ -545,7 +556,7 @@ class TestAnalysisRepositoryDelete:
         for i in range(5):
             analysis = analysis_repo.create(
                 dataset_id=sample_dataset.id,
-                model="Model",
+                detection_method="Model",
                 name=f"Analysis_{i}",
             )
             created_ids.append(analysis.id)
@@ -624,7 +635,7 @@ class TestAnalysisCascadeDelete:
         for i in range(3):
             analysis_repo.create(
                 dataset_id=sample_dataset.id,
-                model="Model",
+                detection_method="Model",
                 name=f"Analysis_{i}",
             )
 
@@ -646,7 +657,7 @@ class TestAnalysisCascadeDelete:
         # Create analysis
         analysis = analysis_repo.create(
             dataset_id=sample_dataset.id,
-            model="IsolationForest",
+            detection_method="IsolationForest",
             name="Test_Analysis",
         )
 
@@ -682,7 +693,7 @@ class TestAnalysisEdgeCases:
         """Test creating an analysis with empty string description"""
         analysis = analysis_repo.create(
             dataset_id=sample_dataset.id,
-            model="Model",
+            detection_method="Model",
             name="Analysis",
             description="",
         )
@@ -694,23 +705,23 @@ class TestAnalysisEdgeCases:
         long_name = "A" * 255  # Max length
         analysis = analysis_repo.create(
             dataset_id=sample_dataset.id,
-            model="M" * 255,
+            detection_method="M" * 255,
             name=long_name,
         )
 
         assert len(analysis.name) == 255
-        assert len(analysis.model) == 255
+        assert len(analysis.detection_method) == 255
 
     def test_analysis_same_name_same_dataset(self, sample_dataset, analysis_repo):
         """Test that multiple analyses can have the same name on the same dataset"""
         analysis1 = analysis_repo.create(
             dataset_id=sample_dataset.id,
-            model="Model_A",
+            detection_method="Model_A",
             name="Same_Name",
         )
         analysis2 = analysis_repo.create(
             dataset_id=sample_dataset.id,
-            model="Model_B",
+            detection_method="Model_B",
             name="Same_Name",
         )
 
@@ -722,21 +733,19 @@ class TestAnalysisEdgeCases:
         """Test that different datasets can have analyses with the same name"""
         dataset1 = dataset_repo.create(
             name=f"Dataset_1_{datetime.now().timestamp()}",
-            start_date=datetime.now(),
         )
         dataset2 = dataset_repo.create(
             name=f"Dataset_2_{datetime.now().timestamp()}",
-            start_date=datetime.now(),
         )
 
         analysis1 = analysis_repo.create(
             dataset_id=dataset1.id,
-            model="IsolationForest",
+            detection_method="IsolationForest",
             name="Standard_Analysis",
         )
         analysis2 = analysis_repo.create(
             dataset_id=dataset2.id,
-            model="LSTM_Autoencoder",
+            detection_method="LSTM_Autoencoder",
             name="Standard_Analysis",
         )
 
@@ -753,7 +762,7 @@ class TestSMAPWorkflows:
         # First pass - conservative
         analysis1 = analysis_repo.create(
             dataset_id=dataset_with_datapoints.id,
-            model="IsolationForest",
+            detection_method="IsolationForest",
             name="IF_conservative",
             description="contamination=0.05, n_estimators=100",
         )
@@ -761,7 +770,7 @@ class TestSMAPWorkflows:
         # Second pass - standard
         analysis2 = analysis_repo.create(
             dataset_id=dataset_with_datapoints.id,
-            model="IsolationForest",
+            detection_method="IsolationForest",
             name="IF_standard",
             description="contamination=0.1, n_estimators=100",
         )
@@ -769,7 +778,7 @@ class TestSMAPWorkflows:
         # Third pass - aggressive
         analysis3 = analysis_repo.create(
             dataset_id=dataset_with_datapoints.id,
-            model="IsolationForest",
+            detection_method="IsolationForest",
             name="IF_aggressive",
             description="contamination=0.15, n_estimators=100",
         )
@@ -793,7 +802,7 @@ class TestSMAPWorkflows:
         for model in models:
             analysis = analysis_repo.create(
                 dataset_id=dataset_with_datapoints.id,
-                model=model,
+                detection_method=model,
                 name=f"{model}_SMAP_Run",
                 description=f"Standard {model} configuration",
             )
@@ -828,7 +837,7 @@ class TestSMAPWorkflows:
         for i in range(5):
             analysis = analysis_repo.create(
                 dataset_id=sample_dataset.id,
-                model="IsolationForest",
+                detection_method="IsolationForest",
                 name=f"Analysis_{i}",
             )
             created.append(analysis)
