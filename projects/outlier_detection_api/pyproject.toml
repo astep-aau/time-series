@@ -1,13 +1,10 @@
 [project]
-name = "api"
+name = "outlier_detection_api"
 version = "1.0.0"
 dependencies = [
     "fastapi>0",
-    "fastapi-pagination>0",
-    "psycopg2-binary>0",
     "pydantic>0",
     "pydantic-settings>0",
-    "sqlmodel>0",
     "uvicorn>0",
     "loguru>0",
 ]
@@ -18,10 +15,10 @@ dev = [
 ]
 
 [tool.poe.tasks]
-container-build = "podman build -t time_series.api:latest -f Containerfile ../.."
-container-run = "podman run -it --env-file=.env --replace --name time_series.api -p 8000:8000 time_series.api:latest"
+container-build = "podman build -t time_series.outlier_detection_api:latest -f Containerfile ../.."
+container-run = "podman run -it --env-file=.env --replace --name time_series.outlier_detection_api -p 8001:8001 time_series.outlier_detection_api:latest"
 
-serve = "python -m time_series.api"
+serve = "python -m time_series.outlier_detection_api"
 
 [build-system]
 requires = ["hatchling", "hatch-polylith-bricks"]
@@ -30,13 +27,11 @@ build-backend = "hatchling.build"
 [tool.hatch.build.hooks.polylith-bricks]
 # This section is needed for the Hatchling build backend, to activate the polylith build hook.
 
-#[tool.hatch.build.targets.wheel]
-#packages = ["time_series"]
+[tool.hatch.build.targets.wheel]
+packages = ["time_series"]
 # This section is needed for building
 
 [tool.polylith.bricks]
-"../../bases/time_series/api" = "time_series/api"
+"../../bases/time_series/outlier_detection_api" = "time_series/outlier_detection_api"
 "../../components/time_series/settings" = "time_series/settings"
-"../../components/time_series/dataset_service" = "time_series/dataset_service"
-"../../components/time_series/database" = "time_series/database"
 "../../components/time_series/uvicorn_runner" = "time_series/uvicorn_runner"

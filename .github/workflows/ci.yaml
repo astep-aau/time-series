@@ -14,7 +14,9 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up dotenv
-        run: cp .env.example .env
+        run: |
+          cp projects/api/.env.example projects/api/.env
+          cp projects/outlier_detection_api/.env.example projects/outlier_detection_api/.env
 
       - name: Set up Python
         uses: actions/setup-python@v5

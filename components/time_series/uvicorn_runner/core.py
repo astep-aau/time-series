@@ -1,17 +1,18 @@
 import logging
 import signal
 
-from time_series.api.logging_utils import setup_logging
 from time_series.settings import Environment, get_settings
 from uvicorn import Config, Server
 
+from .logging_utils import setup_logging
 
-def run() -> None:
+
+def run(entrypoint: str) -> None:
     settings = get_settings()
 
     server = Server(
         Config(
-            "time_series.api.main:app",
+            entrypoint,
             host=settings.listen_host,
             port=settings.port,
             log_level=logging.getLevelName(settings.log_level.value),
@@ -28,7 +29,3 @@ def run() -> None:
 
     setup_logging()
     server.run()
-
-
-if __name__ == "__main__":
-    run()

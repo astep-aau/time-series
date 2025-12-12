@@ -39,11 +39,11 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="__", case_sensitive=False)
 
     listen_host: str = "0.0.0.0"
-    port: int = 8000
+    port: int
     log_level: LogLevel = LogLevel.INFO
 
     environment: Environment = Environment.DEVELOPMENT
-    database: DatabaseSettings
+    database: DatabaseSettings = DatabaseSettings(username="", password="", host="", name="")
 
     max_page_size: int = 10000
     default_page_size: int = 100

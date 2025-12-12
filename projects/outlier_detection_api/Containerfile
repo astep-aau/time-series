@@ -1,0 +1,33 @@
+# -- Setup --
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm AS builder
+
+WORKDIR /app
+
+
+# Copy only dependency files first for efficient caching
+COPY ../../pyproject.toml ../../uv.lock ./
+
+# Install third-party dependencies
+RUN uv sync --frozen --no-install-project
+
+# Now copy the entire source code
+COPY ../../bases ./bases
+COPY ../../components ./components
+COPY ../../projects ./projects
+
+# Install the project itself
+RUN uv build --package outlier_detection_api
+
+# --- Runtime Stage ---
+FROM python:3.13-slim AS runtime
+
+WORKDIR /app
+
+# Copy built wheel from build stage
+COPY --from=builder /app/dist/*.whl ./
+
+# Install the wheel
+RUN pip install --no-cache-dir ./*.whl
+
+# Start Time-series API
+CMD ["python", "-m", "time_series.outlier_detection_api"]
