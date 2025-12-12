@@ -2,13 +2,13 @@ from typing import Generator
 
 from fastapi import Depends
 from sqlmodel import Session
-from time_series.database.engine import ENGINE
+from time_series.database.engine import get_engine
 from time_series.database.unit_of_work import UnitOfWork
 from time_series.dataset_service import OverviewService, UploadService
 
 
 def get_session() -> Generator[Session, None, None]:
-    with Session(ENGINE) as session:
+    with Session(get_engine()) as session:
         yield session
 
 
