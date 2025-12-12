@@ -1,13 +1,27 @@
+import logging
 from enum import Enum
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 class Environment(str, Enum):
     DEVELOPMENT = "development"
     PRODUCTION = "production"
+
+
+class LogLevel(str, Enum):
+    TRACE = "TRACE"
+    DEBUG = "DEBUG"
+    INFO = "INFO"
+    SUCCESS = "SUCCESS"
+    WARNING = "WARNING"
+    ERROR = "ERROR"
+    CRITICAL = "CRITICAL"
 
 
 class DatabaseSettings(BaseModel):
@@ -28,6 +42,10 @@ class DatabaseSettings(BaseModel):
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="__", case_sensitive=False)
 
+    listen_host: str = "0.0.0.0"
+    port: int = 8000
+    log_level: LogLevel = LogLevel.INFO
+
     environment: Environment = Environment.DEVELOPMENT
     database: DatabaseSettings
 
@@ -37,10 +55,5 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings():
-    from pathlib import Path
-
-    env_path = Path(".env")
-    print(f"Looking for .env at: {env_path.absolute()}")
-    print(f".env exists: {env_path.exists()}")
-
+    logger.info(f"Looking for .env at: {Path('.env').absolute()}")
     return Settings()  # type: ignore

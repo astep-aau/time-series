@@ -6,9 +6,4 @@ from time_series.settings import get_settings
 
 @lru_cache
 def get_engine():
-    settings = get_settings()
-
-    return create_engine(
-        str(settings.database.url),
-        echo=(settings.environment != "production"),
-    )
+    return create_engine(str(get_settings().database.url))

@@ -1,6 +1,10 @@
+import logging
+
 from sqlmodel import Session
 
 from .repository import AnalysisRepository, AnomalyRepository, DatapointRepository, DatasetRepository
+
+logger = logging.getLogger(__name__)
 
 
 class UnitOfWork:
@@ -18,10 +22,13 @@ class UnitOfWork:
         self.rollback()
 
     def commit(self):
+        logger.info("COMMIT!")
         self._session.commit()
 
     def rollback(self):
+        logger.info("ROLLBACK!")
         self._session.rollback()
 
     def flush(self):
+        logger.info("FLUSH!")
         self._session.flush()
