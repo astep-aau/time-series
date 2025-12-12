@@ -67,8 +67,9 @@ class Anomaly(SQLModel, table=True):
 
 class Prediction(SQLModel, table=True):
     __tablename__ = "prediction_results"
+    __table_args__ = {"schema": "timeseries"}
 
-    analysis_id: int = Field(foreign_key="analyses.id", primary_key=True)
+    analysis_id: int = Field(foreign_key="timeseries.analyses.id", primary_key=True)
     time: datetime = Field(primary_key=True)
     value: float
 

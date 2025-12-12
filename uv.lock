@@ -463,6 +463,7 @@ version = "0.1.0"
 source = { editable = "projects/forecasting" }
 dependencies = [
     { name = "fastapi" },
+    { name = "fastapi-pagination" },
     { name = "numpy" },
     { name = "python-dotenv" },
     { name = "python-multipart" },
@@ -480,6 +481,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">0" },
+    { name = "fastapi-pagination", specifier = ">0" },
     { name = "numpy", specifier = ">0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "python-multipart", specifier = ">0" },
