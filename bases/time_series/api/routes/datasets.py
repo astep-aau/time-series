@@ -1,66 +1,25 @@
-import logging
 from datetime import datetime
-from typing import Optional, TypeVar
+from typing import Optional
 
-from fastapi import Depends, FastAPI, HTTPException, Query, Request
-from fastapi.responses import RedirectResponse
-from fastapi_pagination import Page, add_pagination, paginate
-from fastapi_pagination.customization import CustomizedPage, UseAdditionalFields, UseParamsFields
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi_pagination import paginate
 from sqlmodel import Session
-from starlette.middleware.cors import CORSMiddleware
-from time_series.database.engine import ENGINE
+from time_series.api.helpers import get_overview_service, get_session
+from time_series.api.pagination import DatapointsPage
 from time_series.database.unit_of_work import UnitOfWork
 from time_series.dataset_service import OverviewService, UploadService
 
-logger = logging.getLogger("rest-api")
-app = FastAPI()
+router = APIRouter()
 
 
-def get_session():
-    with Session(ENGINE) as session:
-        yield session
-
-
-def get_overview_service(session: Session = Depends(get_session)) -> OverviewService:
-    return OverviewService(UnitOfWork(session))
-
-
-def get_upload_service(session: Session = Depends(get_session)) -> UploadService:
-    return UploadService(UnitOfWork(session))
-
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-T = TypeVar("T")
-DatapointsPage = CustomizedPage[
-    Page[T],
-    UseParamsFields(size=Query(100, ge=1, le=10000)),
-]
-
-RangesPage = CustomizedPage[
-    Page[T], UseParamsFields(size=Query(100, ge=1, le=10000)), UseAdditionalFields(dataset_id=int)
-]
-
-
-@app.get("/", include_in_schema=False)
-async def docs_redirect():
-    return RedirectResponse(url="/docs")
-
-
-@app.get("/datasets")
+@router.get("/")
 def get_datasets(
     service: OverviewService = Depends(get_overview_service),
 ) -> dict:
     return {"datasets": service.get_all_datasets()}
 
 
-@app.post("/datasets")
+@router.post("/")
 async def create_dataset_endpoint(
     request: Request,
     name: str = Query(description="Name of the dataset"),
@@ -80,7 +39,7 @@ async def create_dataset_endpoint(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.get("/datasets/{dataset_id}")
+@router.get("/{dataset_id}")
 def get_dataset_endpoint(
     dataset_id: int,
     service: OverviewService = Depends(get_overview_service),
@@ -88,7 +47,7 @@ def get_dataset_endpoint(
     return service.get_dataset_by_id(dataset_id)
 
 
-@app.put("/datasets/{dataset_id}")
+@router.put("/{dataset_id}")
 async def add_dataset_data(request: Request, dataset_id: int, session: Session = Depends(get_session)) -> dict:
     csv_content = await request.body()
     csv_text = csv_content.decode("utf-8") if csv_content else ""
@@ -103,7 +62,7 @@ async def add_dataset_data(request: Request, dataset_id: int, session: Session =
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@app.delete("/datasets/{dataset_id}")
+@router.delete("/{dataset_id}")
 def delete_dataset_endpoint(dataset_id: int, session: Session = Depends(get_session)) -> dict:
     try:
         with UnitOfWork(session) as uow:
@@ -116,7 +75,7 @@ def delete_dataset_endpoint(dataset_id: int, session: Session = Depends(get_sess
         raise HTTPException(status_code=404, detail=str(e))
 
 
-@app.get("/datasets/{dataset_id}/records")
+@router.get("/{dataset_id}/records")
 async def get_records_endpoint(
     dataset_id: int,
     start: Optional[datetime] = Query(None, description="Start datetime for filtering records"),
@@ -127,22 +86,9 @@ async def get_records_endpoint(
     return paginate(records_data)
 
 
-@app.get("/datasets/{dataset_id}/analyses")
+@router.get("/{dataset_id}/analyses")
 async def get_analyses_for_dataset_endpoint(
     dataset_id: int,
     service: OverviewService = Depends(get_overview_service),
 ) -> dict:
     return {"analyses": service.get_analyses(dataset_id)}
-
-
-@app.get("/analyses/{analysis_id}")
-async def get_anomalous_ranges_endpoint(
-    analysis_id: int,
-    service: OverviewService = Depends(get_overview_service),
-) -> RangesPage[dict]:
-    result = service.get_anomalous_ranges(analysis_id)
-    items = paginate(result["items"], additional_data=({"dataset_id": result["dataset_id"]}))
-    return items
-
-
-add_pagination(app)

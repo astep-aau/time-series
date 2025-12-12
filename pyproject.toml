@@ -1,6 +1,6 @@
 [project]
 name = "time-series"
-version = "0.1.0"
+version = "1.0.0"
 description = "Time-series supergroup"
 readme = "README.md"
 requires-python = ">=3.12.0, <3.13"
@@ -71,7 +71,7 @@ typecheck = "mypy ."
 test = "pytest test"
 all = [{ref="format"}, {ref="lint"}, {ref="editorcheck"}, {ref="polycheck"}, {ref="typecheck"}, {ref="test"}]
 
-outlier_detection = "poe -C projects/outlier_detection"
+api = "poe -C projects/api"
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -80,8 +80,7 @@ allow-direct-references = true
 dev-mode-dirs = ["components", "bases", "development", "."]
 
 [tool.polylith.bricks]
-"bases/time_series/outlier_detection" = "time_series/outlier_detection"
-"components/time_series/greeting" = "time_series/greeting"
+"bases/time_series/api" = "time_series/api"
 "components/time_series/model" = "time_series/model"
 "components/time_series/database" = "time_series/database"
 "components/time_series/dataset_service" = "time_series/dataset_service"
