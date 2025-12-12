@@ -49,6 +49,13 @@ class AnomalyType(str, Enum):
     contextual = "contextual"
 
 
+class StatusType(str, Enum):
+    pending = "pending"
+    processing = "processing"
+    completed = "completed"
+    error = "error"
+
+
 class Anomaly(SQLModel, table=True):
     __tablename__ = "anomalies"
     __table_args__ = {"schema": "timeseries"}
@@ -59,4 +66,8 @@ class Anomaly(SQLModel, table=True):
     end: datetime
     validated: bool = Field(default=False)
     type: AnomalyType = Field(sa_column=Column(SQLAEnum(AnomalyType, name="anomalytype", schema="timeseries")))
+    status: StatusType = Field(
+        default=StatusType.pending,
+        sa_column=Column(SQLAEnum(StatusType, name="statustype", schema="timeseries")),
+    )
     analysis: Optional[Analysis] = Relationship(back_populates="anomalies")
