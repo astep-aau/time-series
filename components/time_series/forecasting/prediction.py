@@ -3,7 +3,7 @@ import pickle
 
 import numpy as np
 from tensorflow.keras.models import load_model
-from time_series.forecast.weather import get_todays_temp
+from time_series.forecasting.weather import get_todays_temp
 
 TIMESTEPS = 24
 
