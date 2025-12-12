@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from fastapi_pagination.ext.sqlmodel import paginate
+from fastapi_pagination import paginate
 from sqlmodel import Session
 from time_series.api.helpers import get_overview_service, get_session
 from time_series.api.pagination import DatapointsPage

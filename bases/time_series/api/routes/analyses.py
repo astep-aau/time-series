@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from fastapi_pagination.ext.sqlmodel import paginate
+from fastapi_pagination import paginate
 from sqlmodel import Session
 from time_series.api.helpers import get_overview_service, get_session
 from time_series.api.pagination import RangesPage
