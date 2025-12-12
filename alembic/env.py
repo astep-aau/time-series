@@ -1,17 +1,15 @@
-import os
 from logging.config import fileConfig
 
-from dotenv import load_dotenv
 from sqlalchemy import create_engine
 from time_series.database.models import SQLModel
+from time_series.settings import get_settings
 
 from alembic import context
-
-load_dotenv()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
+settings = get_settings()
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -32,13 +30,7 @@ target_metadata = SQLModel.metadata
 
 def get_url():
     """Generate a URL from the environment variables."""
-    return "postgresql://%s:%s@%s:%s/%s" % (
-        os.environ["DB_USER"],
-        os.environ["DB_PASS"],
-        os.environ["DB_HOST"],
-        os.environ["DB_PORT"],
-        os.environ["DB_NAME"],
-    )
+    return str(settings.database.url)
 
 
 def run_migrations_offline() -> None:
@@ -59,7 +51,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         include_schemas=True,
-        version_table_schema=os.environ["DB_SCHEMA"],
+        version_table_schema=settings.database.schema_name,
     )
 
     with context.begin_transaction():
@@ -80,7 +72,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             include_schemas=True,
-            version_table_schema=os.environ["DB_SCHEMA"],
+            version_table_schema=settings.database.schema_name,
         )
 
         with context.begin_transaction():

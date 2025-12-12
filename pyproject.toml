@@ -6,18 +6,18 @@ readme = "README.md"
 requires-python = ">=3.12.0, <3.13"
 license = "MIT"
 dependencies = [
-    "alembic>=1.17.0",
     "fastapi>=0.118.0",
     "fastapi-pagination>=0.15.0",
     "psycopg2-binary>=2.9.11",
     "pydantic>=2.11.10",
+    "pydantic-settings>=2.12.0",
     "sqlmodel>=0.0.25",
     "uvicorn>=0.37.0",
     "torch>=2.7.0",
     "torchvision>=0.22.0,<0.24.0",
     "datasets>=4.4.1",
     "matplotlib>=3.10.7",
-    "python-dotenv>=1.2.1",
+    "loguru>=0.7.3",
 ]
 
 [tool.uv]
@@ -46,6 +46,7 @@ build-backend = "hatchling.build"
 
 [dependency-groups]
 dev = [
+    "alembic>=1.17.0",
     "editorconfig-checker>=3.4.0",
     "hatch>=1.14.2",
     "ipython>=9.6.0",
@@ -81,7 +82,6 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 
 [tool.polylith.bricks]
 "bases/time_series/api" = "time_series/api"
-"components/time_series/model" = "time_series/model"
 "components/time_series/database" = "time_series/database"
 "components/time_series/dataset_service" = "time_series/dataset_service"
 "components/time_series/forecast" = "time_series/forecast"

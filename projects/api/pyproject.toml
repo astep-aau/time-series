@@ -2,18 +2,14 @@
 name = "api"
 version = "1.0.0"
 dependencies = [
-    "alembic>0",
     "fastapi>0",
     "fastapi-pagination>0",
     "psycopg2-binary>0",
     "pydantic>0",
+    "pydantic-settings>0",
     "sqlmodel>0",
     "uvicorn>0",
-    "torch>0",
-    "torchvision>0",
-    "datasets>0",
-    "matplotlib>0",
-    "python-dotenv>0",
+    "loguru>0",
 ]
 
 [dependency-groups]
@@ -23,9 +19,9 @@ dev = [
 
 [tool.poe.tasks]
 container-build = "podman build -t time_series.api:latest -f Containerfile ../.."
-container-run = "podman run -it --replace --name time_series.api -p 8000:8000 time_series.api:latest"
+container-run = "podman run -it --env-file=.env --replace --name time_series.api -p 8000:8000 time_series.api:latest"
 
-serve = "uvicorn --reload time_series.api.main:app"
+serve = "python -m time_series.api"
 
 [build-system]
 requires = ["hatchling", "hatch-polylith-bricks"]
@@ -40,6 +36,6 @@ build-backend = "hatchling.build"
 
 [tool.polylith.bricks]
 "../../bases/time_series/api" = "time_series/api"
-"../../components/time_series/model" = "time_series/model"
+"../../components/time_series/settings" = "time_series/settings"
 "../../components/time_series/dataset_service" = "time_series/dataset_service"
 "../../components/time_series/database" = "time_series/database"
