@@ -10,6 +10,7 @@ resolution-markers = [
 [manifest]
 members = [
     "api",
+    "outlier-detection-api",
     "time-series",
 ]
 
@@ -1056,6 +1057,35 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/2d/57/8aeaf160312f7f489dea47ab61e430b5cb051f59a98ae68b7133ce8fa06a/numpy-2.3.5-cp312-cp312-win_amd64.whl", hash = "sha256:86945f2ee6d10cdfd67bcb4069c1662dd711f7e2a4343db5cecec06b87cf31aa", size = 12782922, upload-time = "2025-11-16T22:50:12.811Z" },
     { url = "https://files.pythonhosted.org/packages/78/a6/aae5cc2ca78c45e64b9ef22f089141d661516856cf7c8a54ba434576900d/numpy-2.3.5-cp312-cp312-win_arm64.whl", hash = "sha256:f28620fe26bee16243be2b7b874da327312240a7cdc38b769a697578d2100013", size = 10194667, upload-time = "2025-11-16T22:50:16.16Z" },
 ]
+
+[[package]]
+name = "outlier-detection-api"
+version = "1.0.0"
+source = { editable = "projects/outlier_detection_api" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "loguru" },
+    { name = "pydantic" },
+    { name = "pydantic-settings" },
+    { name = "uvicorn" },
+]
+
+[package.dev-dependencies]
+dev = [
+    { name = "poethepoet" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "fastapi", specifier = ">0" },
+    { name = "loguru", specifier = ">0" },
+    { name = "pydantic", specifier = ">0" },
+    { name = "pydantic-settings", specifier = ">0" },
+    { name = "uvicorn", specifier = ">0" },
+]
+
+[package.metadata.requires-dev]
+dev = [{ name = "poethepoet", specifier = ">0" }]
 
 [[package]]
 name = "packaging"
