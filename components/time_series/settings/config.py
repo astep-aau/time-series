@@ -1,12 +1,8 @@
-import logging
 from enum import Enum
 from functools import lru_cache
-from pathlib import Path
 
 from pydantic import BaseModel, PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-logger = logging.getLogger(__name__)
 
 
 class Environment(str, Enum):
@@ -55,5 +51,4 @@ class Settings(BaseSettings):
 
 @lru_cache()
 def get_settings():
-    logger.info(f"Looking for .env at: {Path('.env').absolute()}")
     return Settings()  # type: ignore
