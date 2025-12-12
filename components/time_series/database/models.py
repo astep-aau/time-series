@@ -43,7 +43,6 @@ class Analysis(SQLModel, table=True):
     dataset: Optional[Dataset] = Relationship(back_populates="analyses")
     anomalies: list["Anomaly"] = Relationship(back_populates="analysis", cascade_delete=True)
 
-    # FIXED: This line must be indented inside the class
     predictions: list["Prediction"] = Relationship(back_populates="analysis", cascade_delete=True)
 
 
