@@ -8,7 +8,12 @@ dependencies = [
     "psycopg2-binary>0",
     "pydantic>0",
     "sqlmodel>0",
-    "uvicorn>=0",
+    "uvicorn>0",
+    "torch>0",
+    "torchvision>0",
+    "datasets>0",
+    "matplotlib>0",
+    "python-dotenv>0",
 ]
 
 [dependency-groups]
