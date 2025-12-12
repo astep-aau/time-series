@@ -58,6 +58,9 @@ dev = [
     "pre-commit>=4.3.0",
     "pytest>=8.4.2",
     "ruff>=0.13.3",
+    "tensorflow>=2.19",
+    "types-tensorflow>=2.18",
+    "scikit-learn>=1.7.2"
 ]
 
 [tool.poe.tasks]
@@ -72,6 +75,7 @@ test = "pytest test"
 all = [{ref="format"}, {ref="lint"}, {ref="editorcheck"}, {ref="polycheck"}, {ref="typecheck"}, {ref="test"}]
 
 outlier_detection = "poe -C projects/outlier_detection"
+forecasting = "poe -C projects/forecasting"
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -86,6 +90,9 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 "components/time_series/database" = "time_series/database"
 "components/time_series/dataset_service" = "time_series/dataset_service"
 "components/time_series/forecast" = "time_series/forecast"
+"bases/time_series/rest_api" = "time_series/rest_api"
+
+
 
 [tool.ruff]
 exclude = [
@@ -116,3 +123,6 @@ plugins = "pydantic.mypy"
 
 [tool.pytest.ini_options]
 addopts = "--doctest-modules"
+
+[tool.polylith.third_party]
+dotenv = "python-dotenv"

@@ -1,6 +1,12 @@
 from sqlmodel import Session
 
-from .repository import AnalysisRepository, AnomalyRepository, DatapointRepository, DatasetRepository
+from .repository import (
+    AnalysisRepository,
+    AnomalyRepository,
+    DatapointRepository,
+    DatasetRepository,
+    PredictionRepository,
+)
 
 
 class UnitOfWork:
@@ -10,6 +16,7 @@ class UnitOfWork:
         self.datapoints: DatapointRepository = DatapointRepository(session=self._session)
         self.analyses: AnalysisRepository = AnalysisRepository(session=self._session)
         self.anomalies: AnomalyRepository = AnomalyRepository(session=self._session)
+        self.predictions: PredictionRepository = PredictionRepository(session=self._session)
 
     def __enter__(self):
         return self

@@ -43,6 +43,9 @@ class Analysis(SQLModel, table=True):
     dataset: Optional[Dataset] = Relationship(back_populates="analyses")
     anomalies: list["Anomaly"] = Relationship(back_populates="analysis", cascade_delete=True)
 
+    # FIXED: This line must be indented inside the class
+    predictions: list["Prediction"] = Relationship(back_populates="analysis", cascade_delete=True)
+
 
 class AnomalyType(str, Enum):
     point = "point"
@@ -60,3 +63,14 @@ class Anomaly(SQLModel, table=True):
     validated: bool = Field(default=False)
     type: AnomalyType = Field(sa_column=Column(SQLAEnum(AnomalyType, name="anomalytype", schema="timeseries")))
     analysis: Optional[Analysis] = Relationship(back_populates="anomalies")
+
+
+class Prediction(SQLModel, table=True):
+    __tablename__ = "prediction_results"
+    __table_args__ = {"schema": "timeseries"}
+
+    analysis_id: int = Field(foreign_key="timeseries.analyses.id", primary_key=True)
+    time: datetime = Field(primary_key=True)
+    value: float
+
+    analysis: Optional[Analysis] = Relationship(back_populates="predictions")

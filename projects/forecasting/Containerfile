@@ -17,7 +17,7 @@ FROM builder AS build
 
 WORKDIR /app
 
-RUN uv build --package outlier_detection
+RUN uv build --package forecasting
 
 # --- Runtime Stage ---
 FROM python:3.13-slim AS runtime
@@ -25,15 +25,21 @@ FROM python:3.13-slim AS runtime
 WORKDIR /app
 
 # Copy built wheel from build stage
+RUN pip install --no-cache-dir psycopg2-binary
+
 COPY --from=build /app/dist/*.whl ./
 
 # Install the wheel
-RUN pip install --no-cache-dir psycopg2-binary
-
 RUN pip install --no-cache-dir ./*.whl
+
+# Install multipart
+RUN pip install --no-cache-dir python-multipart
 
 # Expose app port
 EXPOSE 8000
 
+ENTRYPOINT []
+
+
 # Start FastAPI
-CMD ["uvicorn", "time_series.outlier_detection.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python3", "-m", "uvicorn", "time_series.rest_api.core:app", "--host", "0.0.0.0", "--port", "8000"]

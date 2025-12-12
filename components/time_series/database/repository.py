@@ -3,7 +3,14 @@ from typing import List, Optional
 
 from sqlmodel import Session, col, select
 
-from .models import Analysis, Anomaly, AnomalyType, Datapoint, Dataset
+from .models import (
+    Analysis,
+    Anomaly,
+    AnomalyType,
+    Datapoint,
+    Dataset,
+    Prediction,
+)
 
 
 class DatasetRepository:
@@ -230,6 +237,41 @@ class AnomalyRepository:
 
         for anomaly in anomalies:
             self.session.delete(anomaly)
+
+            self.session.flush()
+            return count
+
+
+class PredictionRepository:
+    """Repository for prediction result operations"""
+
+    def __init__(self, session: Session):
+        self.session = session
+
+    def create(self, analysis_id: int, time: datetime, value: float) -> Prediction:
+        prediction = Prediction(analysis_id=analysis_id, time=time, value=value)
+        self.session.add(prediction)
+        self.session.flush()
+        self.session.refresh(prediction)
+        return prediction
+
+    def bulk_create(self, predictions: List[dict]) -> int:
+        for pred in predictions:
+            self.session.add(Prediction(**pred))
+        self.session.flush()
+        return len(predictions)
+
+    def get_by_analysis(self, analysis_id: int) -> List[Prediction]:
+        stmt = select(Prediction).where(Prediction.analysis_id == analysis_id).order_by(col(Prediction.time))
+        return list(self.session.exec(stmt).all())
+
+    def delete_by_analysis(self, analysis_id: int) -> int:
+        stmt = select(Prediction).where(Prediction.analysis_id == analysis_id)
+        preds = self.session.exec(stmt).all()
+        count = len(preds)
+
+        for pred in preds:
+            self.session.delete(pred)
 
         self.session.flush()
         return count
