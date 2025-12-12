@@ -211,4 +211,5 @@ development/nasa_sensor_0_standardized.csv
 .idea/
 
 # ignore dotenv
-.env
+.env*
+!.env.example
