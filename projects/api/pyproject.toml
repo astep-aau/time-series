@@ -36,7 +36,6 @@ build-backend = "hatchling.build"
 
 [tool.polylith.bricks]
 "../../bases/time_series/api" = "time_series/api"
-"../../components/time_series/model" = "time_series/model"
 "../../components/time_series/settings" = "time_series/settings"
 "../../components/time_series/dataset_service" = "time_series/dataset_service"
 "../../components/time_series/database" = "time_series/database"
