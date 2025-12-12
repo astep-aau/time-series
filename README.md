@@ -32,7 +32,7 @@ Also add a poe hook to allow using it from the top level
 #pyproject.toml
 [tool.poe.tasks]
 ...
-rest_api = "poe -C projects/rest_api"
+api = "poe -C projects/api"
 ```
 
 This could look like the following:
@@ -40,15 +40,15 @@ This could look like the following:
 ```toml
 # /pyproject.toml
 [tool.polylith.bricks]
-"bases/time_series/rest_api" = "time_series/rest_api"
-"components/time_series/greeting" = "time_series/greeting"
+"bases/time_series/api" = "time_series/api"
+"components/time_series/example" = "time_series/example"
 ```
 
 You may also use the `poly` tool directly to do this as well, but this is only to help do this more quickly.
 
 ```bash
-poly create component --name greeting
-poly create base --name rest_api
+poly create component --name example
+poly create base --name api
 poly sync # To add the new bricks to prproject.toml
 ```
 

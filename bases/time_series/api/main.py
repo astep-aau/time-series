@@ -60,6 +60,11 @@ async def docs_redirect():
     return RedirectResponse(url="/docs")
 
 
+@app.get("/health", include_in_schema=False)
+def health_check():
+    return "OK"
+
+
 @app.get("/datasets")
 def get_datasets(
     service: OverviewService = Depends(get_overview_service),
