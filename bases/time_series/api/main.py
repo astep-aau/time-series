@@ -12,8 +12,23 @@ from time_series.database.engine import ENGINE
 from time_series.database.unit_of_work import UnitOfWork
 from time_series.dataset_service import OverviewService, UploadService
 
-logger = logging.getLogger("rest-api")
-app = FastAPI()
+logger = logging.getLogger("api")
+
+app = FastAPI(
+    title="Time Series API",
+    description="API for managing time series datasets, forecasting and outlier detection",
+    version="1.0.0",
+    docs_url="/docs",
+    redoc_url="/redoc",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def get_session():
@@ -28,14 +43,6 @@ def get_overview_service(session: Session = Depends(get_session)) -> OverviewSer
 def get_upload_service(session: Session = Depends(get_session)) -> UploadService:
     return UploadService(UnitOfWork(session))
 
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 T = TypeVar("T")
 DatapointsPage = CustomizedPage[
