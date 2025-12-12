@@ -7,6 +7,18 @@ from sqlalchemy import Enum as SQLAEnum
 from sqlmodel import Field, Relationship, SQLModel
 
 
+class AnomalyType(str, Enum):
+    point = "point"
+    contextual = "contextual"
+
+
+class StatusType(str, Enum):
+    pending = "pending"
+    processing = "processing"
+    completed = "completed"
+    error = "error"
+
+
 class Dataset(SQLModel, table=True):
     __tablename__ = "datasets"
     __table_args__ = {"schema": "timeseries"}
@@ -39,21 +51,13 @@ class Analysis(SQLModel, table=True):
     detection_method: str = Field(max_length=255)
     name: str = Field(max_length=255)
     description: Optional[str] = None
+    status: StatusType = Field(
+        default=StatusType.pending,
+        sa_column=Column(SQLAEnum(StatusType, name="statustype", schema="timeseries")),
+    )
 
     dataset: Optional[Dataset] = Relationship(back_populates="analyses")
     anomalies: list["Anomaly"] = Relationship(back_populates="analysis", cascade_delete=True)
-
-
-class AnomalyType(str, Enum):
-    point = "point"
-    contextual = "contextual"
-
-
-class StatusType(str, Enum):
-    pending = "pending"
-    processing = "processing"
-    completed = "completed"
-    error = "error"
 
 
 class Anomaly(SQLModel, table=True):
@@ -66,8 +70,4 @@ class Anomaly(SQLModel, table=True):
     end: datetime
     validated: bool = Field(default=False)
     type: AnomalyType = Field(sa_column=Column(SQLAEnum(AnomalyType, name="anomalytype", schema="timeseries")))
-    status: StatusType = Field(
-        default=StatusType.pending,
-        sa_column=Column(SQLAEnum(StatusType, name="statustype", schema="timeseries")),
-    )
     analysis: Optional[Analysis] = Relationship(back_populates="anomalies")

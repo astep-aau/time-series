@@ -15,10 +15,23 @@ class OverviewService:
             if dataset.id is None:
                 continue
             datapoints = self.uow.datapoints.get_by_dataset(dataset.id)
+            analyses = self.uow.analyses.get_by_dataset(dataset.id)
+            formatted_analyses = []
+            for analysis in analyses:
+                formatted_analyses.append(
+                    {
+                        "id": analysis.id,
+                        "detection_method": analysis.detection_method,
+                        "name": analysis.name,
+                        "description": analysis.description,
+                        "status": analysis.status,
+                    }
+                )
             dataset_info = {
                 "id": dataset.id,
                 "name": dataset.name,
                 "num_entries": len(datapoints),
+                "analyses": formatted_analyses,
             }
             result.append(dataset_info)
         return result
