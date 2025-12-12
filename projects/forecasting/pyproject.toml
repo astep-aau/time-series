@@ -40,4 +40,4 @@ packages = ["time_series"]
 "../../components/time_series/dataset_service" = "time_series/dataset_service"
 "../../components/time_series/database" = "time_series/database"
 "../../components/time_series/forecast" = "time_series/forecast"
-"../../bases/time_series/rest_api" = "time_series/rest_api"
+"../../bases/time_series/outlier_detection" = "time_series/outlier_detection"

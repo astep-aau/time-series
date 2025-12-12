@@ -42,4 +42,4 @@ ENTRYPOINT []
 
 
 # Start FastAPI
-CMD ["python3", "-m", "uvicorn", "time_series.rest_api.core:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["python3", "-m", "uvicorn", "time_series.outlier_detection.main:app", "--host", "0.0.0.0", "--port", "8000"]
