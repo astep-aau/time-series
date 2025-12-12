@@ -499,6 +499,7 @@ version = "0.1.0"
 source = { editable = "projects/forecasting" }
 dependencies = [
     { name = "fastapi" },
+    { name = "fastapi-pagination" },
     { name = "numpy" },
     { name = "python-multipart" },
     { name = "python-weather" },
@@ -515,6 +516,7 @@ dev = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">0" },
+    { name = "fastapi-pagination", specifier = ">0" },
     { name = "numpy", specifier = ">0" },
     { name = "python-multipart", specifier = ">0" },
     { name = "python-weather", specifier = ">0" },

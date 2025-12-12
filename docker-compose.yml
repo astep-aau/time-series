@@ -1,12 +1,14 @@
 services:
   db:
     image: postgres:16
+    env_file:
+      - .env
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: timeseriesdb
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASS}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
@@ -14,8 +16,11 @@ services:
     build:
       context: .
       dockerfile: projects/outlier_detection/Containerfile
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/timeseriesdb
+      # if your code uses DATABASE_URL too, keep it:
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
     depends_on:
       - db
     ports:
@@ -25,12 +30,14 @@ services:
     build:
       context: .
       dockerfile: projects/forecasting/Containerfile
+    env_file:
+      - .env
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/timeseriesdb
+      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
     depends_on:
       - db
     ports:
-      - "8002:8000"
+      - "8000:8000"
 
 volumes:
   pgdata:

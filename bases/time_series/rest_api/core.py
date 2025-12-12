@@ -1,24 +1,34 @@
 import logging
 from datetime import datetime
-from typing import List
+from typing import Optional, TypeVar
 
-from fastapi import FastAPI, HTTPException, Query, Request
-from fastapi.middleware.cors import CORSMiddleware
-from time_series.dataset_service import (
-    add_data_to_dataset,
-    create_dataset,
-    delete_dataset,
-    get_all_datasets,
-    get_dataset_by_id,
-)
-from time_series.forecast import add_prediction, get_all_predictions, predict
-from time_series.greeting import hello_world
-from time_series.rest_api.requestModels import PredictionCreateRequest
+from fastapi import Depends, FastAPI, HTTPException, Query, Request
+from fastapi.responses import RedirectResponse
+from fastapi_pagination import Page, add_pagination, paginate
+from fastapi_pagination.customization import CustomizedPage, UseAdditionalFields, UseParamsFields
+from sqlmodel import Session
+from starlette.middleware.cors import CORSMiddleware
+from time_series.database.engine import ENGINE
+from time_series.database.unit_of_work import UnitOfWork
+from time_series.dataset_service import OverviewService, UploadService
 
 logger = logging.getLogger("rest-api")
 app = FastAPI()
 
-app.debug = True
+
+def get_session():
+    with Session(ENGINE) as session:
+        yield session
+
+
+def get_overview_service(session: Session = Depends(get_session)) -> OverviewService:
+    return OverviewService(UnitOfWork(session))
+
+
+def get_upload_service(session: Session = Depends(get_session)) -> UploadService:
+    return UploadService(UnitOfWork(session))
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -27,93 +37,137 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+T = TypeVar("T")
+DatapointsPage = CustomizedPage[
+    Page[T],
+    UseParamsFields(size=Query(100, ge=1, le=10000)),
+]
 
-@app.get("/")
-def root() -> dict:
-    logger.info("fastapi root endpoint was called")
-    return {"message": hello_world()}
+RangesPage = CustomizedPage[
+    Page[T], UseParamsFields(size=Query(100, ge=1, le=10000)), UseAdditionalFields(dataset_id=int)
+]
+
+
+@app.get("/", include_in_schema=False)
+async def docs_redirect():
+    return RedirectResponse(url="/docs")
 
 
 @app.get("/datasets")
-def get_datasets() -> dict:
-    return {"datasets": get_all_datasets()}
+def get_datasets(
+    service: OverviewService = Depends(get_overview_service),
+) -> dict:
+    return {"datasets": service.get_all_datasets()}
 
 
 @app.post("/datasets")
 async def create_dataset_endpoint(
     request: Request,
     name: str = Query(description="Name of the dataset"),
-    start_date: str = Query(description="Start date in ISO format."),
     description: str = Query(None, description="Description of the dataset"),
+    session: Session = Depends(get_session),
 ) -> dict:
-    try:
-        parsed_start_date = datetime.fromisoformat(start_date)
-    except ValueError:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid start_date format: {start_date}. Expected ISO format.",
-        )
-
     csv_content = await request.body()
     csv_text = csv_content.decode("utf-8") if csv_content else ""
 
     try:
-        result = create_dataset(name=name, start_date=parsed_start_date, description=description, csv_content=csv_text)
-        return result
+        with UnitOfWork(session) as uow:
+            service = UploadService(uow)
+            result = service.create_dataset(name=name, description=description, csv_content=csv_text)
+            uow.commit()
+            return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.get("/datasets/{dataset_id}")
-def get_dataset(dataset_id: int) -> dict:
-    return get_dataset_by_id(dataset_id)
+def get_dataset_endpoint(
+    dataset_id: int,
+    service: OverviewService = Depends(get_overview_service),
+) -> dict:
+    return service.get_dataset_by_id(dataset_id)
 
 
 @app.put("/datasets/{dataset_id}")
-async def add_dataset_data(request: Request, dataset_id: int) -> dict:
+async def add_dataset_data(request: Request, dataset_id: int, session: Session = Depends(get_session)) -> dict:
     csv_content = await request.body()
     csv_text = csv_content.decode("utf-8") if csv_content else ""
 
     try:
-        result = add_data_to_dataset(dataset_id=dataset_id, csv_content=csv_text)
-        return result
+        with UnitOfWork(session) as uow:
+            service = UploadService(uow)
+            result = service.add_data_to_dataset(dataset_id=dataset_id, csv_content=csv_text)
+            uow.commit()
+            return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.delete("/datasets/{dataset_id}")
-def delete_dataset_endpoint(dataset_id: int) -> dict:
+def delete_dataset_endpoint(dataset_id: int, session: Session = Depends(get_session)) -> dict:
     try:
-        delete_dataset(dataset_id)
-        return {"message": "Dataset deleted successfully", "dataset_id": dataset_id}
+        with UnitOfWork(session) as uow:
+            success = uow.datasets.delete(dataset_id)
+            if not success:
+                raise ValueError(f"Dataset with id {dataset_id} not found")
+            uow.commit()
+            return {"message": "Dataset deleted successfully", "dataset_id": dataset_id}
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
 
-# forecasting endpoint
-# TODO implement the endpoints for analysis and forecasting
-@app.get("/analysis/predictions/{dataset_id}")
-def get_analysis(dataset_id: int) -> List[dict]:
-    try:
-        return get_all_predictions(dataset_id)
-    except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+@app.get("/datasets/{dataset_id}/records")
+async def get_records_endpoint(
+    dataset_id: int,
+    start: Optional[datetime] = Query(None, description="Start datetime for filtering records"),
+    end: Optional[datetime] = Query(None, description="End datetime for filtering records"),
+    service: OverviewService = Depends(get_overview_service),
+) -> DatapointsPage[dict]:
+    records_data = service.get_filtered_dataset_records(dataset_id, start, end)
+    return paginate(records_data)
 
 
-@app.post("/analysis/predictions")
-def create_prediction(req: PredictionCreateRequest):
-    try:
-        # 1. Run your ML model to get forecast list
-        prediction_list = predict(user_data=req.user_data, city=req.city)
+@app.get("/datasets/{dataset_id}/analyses")
+async def get_analyses_for_dataset_endpoint(
+    dataset_id: int,
+    service: OverviewService = Depends(get_overview_service),
+) -> dict:
+    return {"analyses": service.get_analyses(dataset_id)}
 
-        # 2. Store it as an analysis + prediction rows
-        analysis_id = add_prediction(
-            model_name=req.model_name, dataset_id=req.dataset_id, user_data=req.user_data, prediction=prediction_list
-        )
 
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception:
-        raise HTTPException(status_code=500, detail="Internal server error")
+@app.get("/analyses/{analysis_id}")
+async def get_anomalous_ranges_endpoint(
+    analysis_id: int,
+    service: OverviewService = Depends(get_overview_service),
+) -> RangesPage[dict]:
+    result = service.get_anomalous_ranges(analysis_id)
+    items = paginate(result["items"], additional_data=({"dataset_id": result["dataset_id"]}))
+    return items
 
-    return {"analysis_id": analysis_id, "prediction_count": len(prediction_list)}
+
+add_pagination(app)
+# @app.get("/analyses/predictions/{dataset_id}")
+# def get_analysis(dataset_id: int) -> List[dict]:
+#     try:
+#         return get_all_predictions(dataset_id)
+#     except ValueError as e:
+#         raise HTTPException(status_code=404, detail=str(e))
+
+
+# @app.post("/analyses/predictions")
+# def create_prediction(req: PredictionCreateRequest):
+#     try:
+#         # 1. Run your ML model to get forecast list
+#         prediction_list = predict(user_data=req.user_data, city=req.city)
+
+#         # 2. Store it as an analysis + prediction rows
+#         analysis_id = add_prediction(
+#             model_name=req.model_name, dataset_id=req.dataset_id, user_data=req.user_data, prediction=prediction_list
+#         )
+
+#     except ValueError as e:
+#         raise HTTPException(status_code=400, detail=str(e))
+#     except Exception:
+#         raise HTTPException(status_code=500, detail="Internal server error")
+
+#     return {"analysis_id": analysis_id, "prediction_count": len(prediction_list)}
