@@ -49,6 +49,7 @@ def mock_uow():
     ]
     uow.datasets = Mock()
     uow.datasets.get_all.return_value = datasets
+    uow.analyses.get_by_dataset.return_value = []
     uow.datasets.get_by_id.side_effect = lambda id: next((d for d in datasets if d.id == id), None)
 
     def get_by_dataset(dataset_id):
