@@ -2,14 +2,14 @@ from logging.config import fileConfig
 
 from sqlalchemy import create_engine
 from time_series.database.models import SQLModel
-from time_series.settings import get_settings
+from time_series.settings import get_database_settings
 
 from alembic import context
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
-settings = get_settings()
+database_settings = get_database_settings(_env_file="projects/api/.env")
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
@@ -30,7 +30,7 @@ target_metadata = SQLModel.metadata
 
 def get_url():
     """Generate a URL from the environment variables."""
-    return str(settings.database.url)
+    return str(database_settings.url)
 
 
 def run_migrations_offline() -> None:
@@ -51,7 +51,7 @@ def run_migrations_offline() -> None:
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
         include_schemas=True,
-        version_table_schema=settings.database.schema_name,
+        version_table_schema=database_settings.schema_name,
     )
 
     with context.begin_transaction():
@@ -72,7 +72,7 @@ def run_migrations_online() -> None:
             connection=connection,
             target_metadata=target_metadata,
             include_schemas=True,
-            version_table_schema=settings.database.schema_name,
+            version_table_schema=database_settings.schema_name,
         )
 
         with context.begin_transaction():
