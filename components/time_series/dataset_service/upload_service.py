@@ -58,23 +58,21 @@ class UploadService:
             raise ValueError(f"Dataset with name '{name}' already exists")
 
         if csv_content.strip():
-            self.parse_csv_content(csv_content)  # Validate CSV format
-
+            self.parse_csv_content(csv_content)
         dataset = self.uow.datasets.create(name=name, description=description)
         if not dataset or not dataset.id:
             raise ValueError("Failed to create dataset")
 
-        datapoints_created = 0
+        count = 0
         if csv_content.strip():
             parsed_datapoints = self.parse_csv_content(csv_content)
             for dp in parsed_datapoints:
                 dp["dataset_id"] = dataset.id
-
             if parsed_datapoints:
                 self.uow.datapoints.bulk_create(parsed_datapoints)
-                datapoints_created = len(parsed_datapoints)
+                count = len(parsed_datapoints)
 
-        return {"id": dataset.id, "name": dataset.name, "datapoints_created": datapoints_created}
+        return {"id": dataset.id, "name": dataset.name, "datapoints_created": count}
 
     def delete_dataset(self, dataset_id: int) -> bool:
         success = self.uow.datasets.delete(dataset_id)
