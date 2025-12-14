@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request
 from fastapi_pagination import paginate
 from sqlmodel import Session
 from time_series.api.helpers import get_overview_service, get_session
@@ -21,12 +21,14 @@ def get_datasets(
 
 @router.post("/")
 async def create_dataset_endpoint(
-    request: Request,
     name: str = Query(description="Name of the dataset"),
     description: str = Query(None, description="Description of the dataset"),
     session: Session = Depends(get_session),
+    csv_content: bytes = Body(
+        description="CSV content of the dataset",
+        example="time,value\n2023-01-01T00:00:00Z,100\n2023-01-01T01:00:00Z,110\n",
+    ),
 ) -> dict:
-    csv_content = await request.body()
     csv_text = csv_content.decode("utf-8") if csv_content else ""
 
     try:
