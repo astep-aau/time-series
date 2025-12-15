@@ -4,7 +4,7 @@ from sqlmodel import Session
 from time_series.api.helpers import get_overview_service, get_session
 from time_series.api.pagination import RangesPage
 from time_series.database import UnitOfWork
-from time_series.dataset_service import OverviewService
+from time_series.services import OverviewService
 
 router = APIRouter()
 

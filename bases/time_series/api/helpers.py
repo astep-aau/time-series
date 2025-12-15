@@ -4,7 +4,7 @@ from fastapi import Depends
 from sqlmodel import Session
 from time_series.database.engine import get_engine
 from time_series.database.unit_of_work import UnitOfWork
-from time_series.dataset_service import OverviewService, UploadService
+from time_series.services import OverviewService, UploadService
 
 
 def get_session() -> Generator[Session, None, None]:

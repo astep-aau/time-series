@@ -32,7 +32,7 @@ def mock_uow():
 
 
 def test_parse_csv_content():
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     csv_content = """unix_time,values
 1761122529,-0.69516194
@@ -49,7 +49,7 @@ def test_parse_csv_content():
 
 
 def test_parse_empty_csv():
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     datapoints = UploadService.parse_csv_content("")
     assert len(datapoints) == 0
@@ -59,7 +59,7 @@ def test_parse_empty_csv():
 
 
 def test_create_empty_dataset(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     service = UploadService(mock_uow)
     result = service.create_dataset(
@@ -73,7 +73,7 @@ def test_create_empty_dataset(mock_uow):
 
 
 def test_create_dataset_with_csv(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     csv_content = """unix_time,values
 1761122529,-0.69516194
@@ -97,7 +97,7 @@ def test_create_dataset_with_csv(mock_uow):
 
 
 def test_create_dataset(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     service = UploadService(mock_uow)
     result = service.create_dataset(name="Test Dataset")
@@ -108,7 +108,7 @@ def test_create_dataset(mock_uow):
 
 
 def test_add_data_to_dataset(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     csv_content = """unix_time,values
 1761122529,-0.69516194
@@ -127,7 +127,7 @@ def test_add_data_to_dataset(mock_uow):
 
 
 def test_add_data_to_nonexistent_dataset(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     mock_uow.datasets.get_by_id.return_value = None
 
@@ -140,7 +140,7 @@ def test_add_data_to_nonexistent_dataset(mock_uow):
 
 
 def test_add_empty_data_to_dataset(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     service = UploadService(mock_uow)
     result = service.add_data_to_dataset(dataset_id=1, csv_content="")
@@ -151,7 +151,7 @@ def test_add_empty_data_to_dataset(mock_uow):
 
 
 def test_create_dataset_with_duplicate_name(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     existing_dataset = MockDataset(id=1, name="Existing Dataset")
     mock_uow.datasets.get_by_name.return_value = existing_dataset
@@ -164,7 +164,7 @@ def test_create_dataset_with_duplicate_name(mock_uow):
 
 
 def test_create_dataset_without_name(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     service = UploadService(mock_uow)
     with pytest.raises(TypeError):
@@ -173,7 +173,7 @@ def test_create_dataset_without_name(mock_uow):
 
 
 def test_create_dataset_with_invalid_csv(mock_uow):
-    from time_series.dataset_service.upload_service import UploadService
+    from time_series.services.upload_service import UploadService
 
     invalid_csv_content = """x, y
 1761122529,-0.69516194"""
