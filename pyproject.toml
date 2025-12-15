@@ -75,8 +75,11 @@ typecheck = "mypy ."
 test = "pytest test"
 all = [{ref="format"}, {ref="lint"}, {ref="editorcheck"}, {ref="polycheck"}, {ref="typecheck"}, {ref="test"}]
 
+
 api = "poe -C projects/api"
 outlier_detection_api = "poe -C projects/outlier_detection_api"
+forecasting = "poe -C projects/forecasting"
+
 
 [tool.hatch.metadata]
 allow-direct-references = true
@@ -90,8 +93,13 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 "components/time_series/database" = "time_series/database"
 "components/time_series/dataset_service" = "time_series/dataset_service"
 "components/time_series/forecast" = "time_series/forecast"
+
 "components/time_series/settings" = "time_series/settings"
 "components/time_series/uvicorn_runner" = "time_series/uvicorn_runner"
+"bases/time_series/forecasting" = "time_series/forecasting"
+
+
+
 
 [tool.ruff]
 exclude = [

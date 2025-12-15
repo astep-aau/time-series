@@ -71,3 +71,32 @@ class Anomaly(SQLModel, table=True):
     validated: bool = Field(default=False)
     type: AnomalyType = Field(sa_column=Column(SQLAEnum(AnomalyType, name="anomalytype", schema="timeseries")))
     analysis: Optional[Analysis] = Relationship(back_populates="anomalies")
+
+
+class PredictionDataset(SQLModel, table=True):
+    __tablename__ = "predictions"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: str = Field(unique=True, max_length=255, index=True)
+    date: datetime
+    datapoints: list["PredictionDatapoint"] = Relationship(back_populates="predictions", cascade_delete=True)
+    results: list["PredictionResult"] = Relationship(back_populates="predictions", cascade_delete=True)
+
+
+class PredictionDatapoint(SQLModel, table=True):
+    __tablename__ = "prediction_datapoints"
+
+    dataset_id: int = Field(foreign_key="predictions.id", primary_key=True)
+    time: datetime = Field(primary_key=True)
+    value: float
+    dataset: Optional[PredictionDataset] = Relationship(back_populates="predictions")
+
+
+class PredictionResult(SQLModel, table=True):
+    __tablename__ = "prediction_results"
+
+    dataset_id: int = Field(foreign_key="predictions.id", primary_key=True)
+    time: datetime = Field(primary_key=True)
+    value: float
+
+    dataset: Optional[PredictionDataset] = Relationship(back_populates="predictions")
