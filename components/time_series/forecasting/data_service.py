@@ -9,7 +9,7 @@ class forecastingService:
     def __init__(self, uow: UnitOfWork):
         self.uow = uow
 
-    def add_prediction(self, model_name: str, dataset_id: int, user_data: list, prediction: list):
+    def add_prediction(self, model_name: str, dataset_id: int, prediction: list):
         """
         Create an analysis entry and store prediction values linked to it.
         """

@@ -1,10 +1,12 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
+from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
+from time_series.forecasting_api.routes import forecasting
 
 app = FastAPI(
-    title="Outlier Detection API",
-    description="API for running outlier detection",
+    title="forecasting",
+    description="API for running forecasting",
     version="1.0.0",
     docs_url="/docs",
     redoc_url="/redoc",
@@ -27,3 +29,8 @@ async def docs_redirect():
 @app.get("/health", include_in_schema=False)
 def health_check():
     return "OK"
+
+
+app.include_router(forecasting.router, prefix="/forecasting", tags=["forecasting"])
+
+add_pagination(app)
