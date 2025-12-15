@@ -111,7 +111,7 @@ def mock_uow_with_analyses():
 
 
 def test_get_all_datasets(mock_uow):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow)
     result = service.get_all_datasets()
@@ -122,7 +122,7 @@ def test_get_all_datasets(mock_uow):
 
 
 def test_get_dataset_by_id(mock_uow):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow)
     result = service.get_dataset_by_id(1)
@@ -134,7 +134,7 @@ def test_get_dataset_by_id(mock_uow):
 
 
 def test_get_dataset_by_id_not_found(mock_uow):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow)
     result = service.get_dataset_by_id(999)
@@ -144,7 +144,7 @@ def test_get_dataset_by_id_not_found(mock_uow):
 
 
 def test_get_dataset_records_basic(mock_uow_with_values):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow_with_values)
     result = service.get_filtered_dataset_records(1)
@@ -156,7 +156,7 @@ def test_get_dataset_records_basic(mock_uow_with_values):
 
 
 def test_get_dataset_records_with_date_range(mock_uow_with_values):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     start = datetime(2024, 1, 1, 3, 0)
     end = datetime(2024, 1, 1, 7, 0)
@@ -169,7 +169,7 @@ def test_get_dataset_records_with_date_range(mock_uow_with_values):
 
 
 def test_get_analyses(mock_uow_with_analyses):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow_with_analyses)
     result = service.get_analyses(1)
@@ -185,7 +185,7 @@ def test_get_analyses(mock_uow_with_analyses):
 
 
 def test_get_analyses_empty_dataset(mock_uow_with_analyses):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow_with_analyses)
     result = service.get_analyses(999)
@@ -195,7 +195,7 @@ def test_get_analyses_empty_dataset(mock_uow_with_analyses):
 
 
 def test_get_anomalous_ranges(mock_uow_with_analyses):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow_with_analyses)
     result = service.get_anomalous_ranges(1)
@@ -211,7 +211,7 @@ def test_get_anomalous_ranges(mock_uow_with_analyses):
 
 
 def test_get_anomalous_ranges_analysis_not_found(mock_uow_with_analyses):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow_with_analyses)
     result = service.get_anomalous_ranges(999)
@@ -222,7 +222,7 @@ def test_get_anomalous_ranges_analysis_not_found(mock_uow_with_analyses):
 
 
 def test_get_anomalous_ranges_no_anomalies(mock_uow_with_analyses):
-    from time_series.dataset_service.overview_service import OverviewService
+    from time_series.services.overview_service import OverviewService
 
     service = OverviewService(mock_uow_with_analyses)
     result = service.get_anomalous_ranges(3)
