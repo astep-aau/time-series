@@ -1,12 +1,12 @@
 services:
   db:
     image: postgres:16
-    #env_file:
-    # - path: .env
-    # environment:
-    #   POSTGRES_USER: ${DATABASE_USERNAME}
-    #   POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
-    #   POSTGRES_DB: ${DATABASE_NAME}
+    env_file:
+      - path: .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
     ports:
       - "5432:5432"
     volumes:
@@ -16,10 +16,9 @@ services:
     build:
       context: ..
       dockerfile: projects/api/Containerfile
-    #env_file: ".env"
-    # environment:
-    # if your code uses DATABASE_URL too, keep it:
-    #DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+    env_file: ".env"
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
     depends_on:
       - db
     ports:
@@ -29,10 +28,9 @@ services:
     build:
       context: ..
       dockerfile: projects/outlier_detection_api/Containerfile
-    # env_file: ".env"
-    # environment:
-    # if your code uses DATABASE_URL too, keep it:
-    # DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+    env_file: ".env"
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
     depends_on:
       - db
     ports:
@@ -42,9 +40,9 @@ services:
     build:
       context: ..
       dockerfile: projects/forecasting/Containerfile
-    # env_file: ".env"
-    # environment:
-    # DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
+    env_file: ".env"
+    environment:
+      DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
     depends_on:
       - db
     ports:
