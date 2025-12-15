@@ -1,7 +1,7 @@
 from enum import Enum
 from functools import lru_cache
 
-from pydantic import BaseModel, PostgresDsn
+from pydantic import PostgresDsn
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -19,8 +19,18 @@ class LogLevel(str, Enum):
     ERROR = "ERROR"
     CRITICAL = "CRITICAL"
 
+    @classmethod
+    def _missing_(cls, value):
+        try:
+            if isinstance(value, str):
+                return cls[value.upper()]
+        except KeyError:
+            pass
 
-class DatabaseSettings(BaseModel):
+
+class DatabaseSettings(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", env_prefix="database_", case_sensitive=False, extra="ignore")
+
     username: str
     password: str
     host: str
@@ -36,19 +46,23 @@ class DatabaseSettings(BaseModel):
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_nested_delimiter="__", case_sensitive=False)
+    model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
 
     listen_host: str = "0.0.0.0"
     port: int
     log_level: LogLevel = LogLevel.INFO
 
     environment: Environment = Environment.DEVELOPMENT
-    database: DatabaseSettings = DatabaseSettings(username="", password="", host="", name="")
 
     max_page_size: int = 10000
     default_page_size: int = 100
 
 
-@lru_cache()
-def get_settings():
-    return Settings()  # type: ignore
+@lru_cache
+def get_settings(*args, **kwargs):
+    return Settings(*args, **kwargs)
+
+
+@lru_cache
+def get_database_settings(*args, **kwargs):
+    return DatabaseSettings(*args, **kwargs)

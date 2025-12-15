@@ -79,6 +79,14 @@ This will install all dependencies and set up virtualenv and pre-commit.
 > You may also configure [`direnv`](https://direnv.net/#getting-started) and write `direnv allow` once in this repo to do this
 > automatically at folder entry.
 
+You may also need to configure each project's `.env` file before running any `poe` commands.
+
+```bash
+cp projects/api/.env.example projects/api/.env
+# ...
+# Configure the `projects/api/.env` file as needed.
+```
+
 ### Getting dangerous with `uv`
 
 ```bash
