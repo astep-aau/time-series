@@ -32,6 +32,32 @@ class UploadService:
 
         return datapoints
 
+    csv_file = StringIO(csv_content)
+
+    reader = csv.DictReader(csv_file)
+
+    for row in reader:
+        # Skip empty or malformed rows
+        if not row or not row.get("unix_time") or not row.get("values"):
+            continue
+
+        try:
+            unix_time = int(row["unix_time"].strip())
+            value = float(row["values"].strip())
+        except Exception as e:
+            raise ValueError(f"Invalid row: {row} ({e})")
+
+        time = datetime.fromtimestamp(unix_time)
+
+
+                if parsed_datapoints:
+                    self.uow.datapoints.bulk_create(parsed_datapoints)
+                    datapoints_added = len(parsed_datapoints)
+            except Exception as e:
+                raise ValueError(f"Error parsing CSV: {str(e)}")
+
+        return {"dataset_id": dataset_id, "datapoints_added": datapoints_added}
+
     def add_data_to_dataset(self, dataset_id: int, csv_content: str) -> dict:
         dataset = self.uow.datasets.get_by_id(dataset_id)
         if not dataset:
@@ -43,14 +69,6 @@ class UploadService:
                 parsed_datapoints = self.parse_csv_content(csv_content)
                 for dp in parsed_datapoints:
                     dp["dataset_id"] = dataset_id
-
-                if parsed_datapoints:
-                    self.uow.datapoints.bulk_create(parsed_datapoints)
-                    datapoints_added = len(parsed_datapoints)
-            except Exception as e:
-                raise ValueError(f"Error parsing CSV: {str(e)}")
-
-        return {"dataset_id": dataset_id, "datapoints_added": datapoints_added}
 
     def create_dataset(self, name: str, description: Optional[str] = None, csv_content: str = "") -> dict:
         existing_dataset = self.uow.datasets.get_by_name(name)
