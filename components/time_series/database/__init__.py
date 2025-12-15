@@ -1,14 +1,12 @@
 
 from .engine import engine
-from .models import Anomaly, AnomalyType, Datapoint, Dataset, PredictionDatapoint, PredictionDataset, PredictionResult
+from .models import Anomaly, AnomalyType, Datapoint, Dataset, Prediction
 from .repository import (
     AnalysisRepository,
     AnomalyRepository,
     DatapointRepository,
     DatasetRepository,
-    PredictionDatapointRepository,
     PredictionRepository,
-    PredictionResultRepository,
 )
 >>>>>>> bc99dbf (fix: Added classes to __init__.py and added basic error handling)
 
@@ -26,7 +24,6 @@ __all__ = [
     "PredictionDataset",
     "PredictionDatapoint",
     "PredictionResult",
+    "Prediction",
     "PredictionRepository",
-    "PredictionDatapointRepository",
-    "PredictionResultRepository",
 ]

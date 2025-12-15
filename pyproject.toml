@@ -97,6 +97,7 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 "components/time_series/settings" = "time_series/settings"
 "components/time_series/uvicorn_runner" = "time_series/uvicorn_runner"
 "bases/time_series/forecasting" = "time_series/forecasting"
+"bases/time_series/rest_api" = "time_series/rest_api"
 
 
 

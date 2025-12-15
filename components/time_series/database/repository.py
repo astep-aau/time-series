@@ -11,9 +11,7 @@ from .models import (
     AnomalyType,
     Datapoint,
     Dataset,
-    PredictionDatapoint,
-    PredictionDataset,
-    PredictionResult,
+    Prediction,
 )
 
 
@@ -249,99 +247,41 @@ class AnomalyRepository:
 
 
 class PredictionRepository:
-    """Repository for prediction operations"""
+    """Repository for prediction result operations"""
 
     def __init__(self, engine=None):
         self.engine = engine or default_engine
 
-    def create(self, name: str, date: datetime) -> PredictionDataset:
+    def create(self, analysis_id: int, time: datetime, value: float) -> Prediction:
         with Session(self.engine) as session:
-            dataset = PredictionDataset(name=name, date=date)
-            session.add(dataset)
+            prediction = Prediction(analysis_id=analysis_id, time=time, value=value)
+            session.add(prediction)
             session.commit()
-            session.refresh(dataset)
-            return dataset
+            session.refresh(prediction)
+            return prediction
 
-    def get_all(self) -> List[PredictionDataset]:
+    def bulk_create(self, predictions: List[dict]) -> int:
         with Session(self.engine) as session:
-            return list(session.exec(select(PredictionDataset)).all())
-
-    def get_by_id(self, dataset_id: int) -> Optional[PredictionDataset]:
-        with Session(self.engine) as session:
-            return session.get(PredictionDataset, dataset_id)
-
-    def get_by_name(self, name: str) -> Optional[PredictionDataset]:
-        with Session(self.engine) as session:
-            statement = select(PredictionDataset).where(PredictionDataset.name == name)
-            return session.exec(statement).first()
-
-    def update(self, dataset_id: int, **kwargs) -> Optional[PredictionDataset]:
-        with Session(self.engine) as session:
-            dataset = session.get(PredictionDataset, dataset_id)
-            if dataset:
-                for key, value in kwargs.items():
-                    setattr(dataset, key, value)
-                session.add(dataset)
-                session.commit()
-                session.refresh(dataset)
-            return dataset
-
-    def delete(self, dataset_id: int) -> bool:
-        with Session(self.engine) as session:
-            dataset = session.get(PredictionDataset, dataset_id)
-            if dataset:
-                session.delete(dataset)
-                session.commit()
-                return True
-            return False
-
-
-class PredictionDatapointRepository:
-    """Repository for prediction datapoint operations"""
-
-    def __init__(self, engine=None):
-        self.engine = engine or default_engine
-
-    def create(self, dataset_id: int, time: datetime, value: float) -> PredictionDatapoint:
-        with Session(self.engine) as session:
-            datapoint = PredictionDatapoint(dataset_id=dataset_id, time=time, value=float(value))
-            session.add(datapoint)
+            for pred in predictions:
+                session.add(Prediction(**pred))
             session.commit()
-            session.refresh(datapoint)
-            return datapoint
+            return len(predictions)
 
-    def get_by_dataset(self, dataset_id: int) -> List[PredictionDatapoint]:
+    def get_by_analysis(self, analysis_id: int) -> List[Prediction]:
         with Session(self.engine) as session:
-            statement = (
-                select(PredictionDatapoint)
-                .where(PredictionDatapoint.dataset_id == dataset_id)
-                .order_by(col(PredictionDatapoint.time))
-            )
-            return list(session.exec(statement).all())
+            stmt = select(Prediction).where(Prediction.analysis_id == analysis_id).order_by(col(Prediction.time))
+            return list(session.exec(stmt).all())
 
-    def delete(self, dataset_id: int) -> bool:
+    def delete_by_analysis(self, analysis_id: int) -> int:
         with Session(self.engine) as session:
-            dataset = session.get(PredictionDataset, dataset_id)
-            if dataset:
-                session.delete(dataset)
-                session.commit()
-                return True
-            return False
+            stmt = select(Prediction).where(Prediction.analysis_id == analysis_id)
+            preds = session.exec(stmt).all()
+            count = len(preds)
 
-
-class PredictionResultRepository:
-    """Repository for prediction datapoint operations"""
-
-    def __init__(self, engine=None):
-        self.engine = engine or default_engine
-
-    def create(self, dataset_id: int, time: datetime, value: float) -> PredictionResult:
-        with Session(self.engine) as session:
-            datapoint = PredictionResult(dataset_id=dataset_id, time=time, value=float(value))
-            session.add(datapoint)
+            for pred in preds:
+                session.delete(pred)
             session.commit()
-            session.refresh(datapoint)
-            return datapoint
+            return count
 
     def get_by_dataset(self, dataset_id: int) -> List[PredictionResult]:
         with Session(self.engine) as session:
@@ -360,4 +300,3 @@ class PredictionResultRepository:
                 session.commit()
                 return True
             return False
-

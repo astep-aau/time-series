@@ -39,4 +39,4 @@ RUN pip install --no-cache-dir python-multipart
 EXPOSE 8000
 
 # Start FastAPI
-CMD ["uvicorn", "time_series.forecasting.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "time_series.rest_api.core:app", "--host", "0.0.0.0", "--port", "8000"]

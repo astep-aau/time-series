@@ -58,6 +58,7 @@ class Analysis(SQLModel, table=True):
 
     dataset: Optional[Dataset] = Relationship(back_populates="analyses")
     anomalies: list["Anomaly"] = Relationship(back_populates="analysis", cascade_delete=True)
+    predictions: list["Prediction"] = Relationship(back_populates="analyses", cascade_delete=True)
 
 
 class Anomaly(SQLModel, table=True):
@@ -73,30 +74,30 @@ class Anomaly(SQLModel, table=True):
     analysis: Optional[Analysis] = Relationship(back_populates="anomalies")
 
 
-class PredictionDataset(SQLModel, table=True):
-    __tablename__ = "predictions"
+# class PredictionDataset(SQLModel, table=True):
+#     __tablename__ = "predictions"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    name: str = Field(unique=True, max_length=255, index=True)
-    date: datetime
-    datapoints: list["PredictionDatapoint"] = Relationship(back_populates="predictions", cascade_delete=True)
-    results: list["PredictionResult"] = Relationship(back_populates="predictions", cascade_delete=True)
-
-
-class PredictionDatapoint(SQLModel, table=True):
-    __tablename__ = "prediction_datapoints"
-
-    dataset_id: int = Field(foreign_key="predictions.id", primary_key=True)
-    time: datetime = Field(primary_key=True)
-    value: float
-    dataset: Optional[PredictionDataset] = Relationship(back_populates="predictions")
+#     id: Optional[int] = Field(default=None, primary_key=True)
+#     name: str = Field(unique=True, max_length=255, index=True)
+#     date: datetime
+#     datapoints: list["PredictionDatapoint"] = Relationship(back_populates="predictions", cascade_delete=True)
+#     results: list["PredictionResult"] = Relationship(back_populates="predictions", cascade_delete=True)
 
 
-class PredictionResult(SQLModel, table=True):
+# class Predictionatapoint(SQLModel, table=True):
+#     __tablename__ = "prediction_datapoints"
+
+#     dataset_id: int = Field(foreign_key="predictions.id", primary_key=True)
+#     time: datetime = Field(primary_key=True)
+#     value: float
+#     dataset: Optional[PredictionDataset] = Relationship(back_populates="predictions")
+
+
+class Prediction(SQLModel, table=True):
     __tablename__ = "prediction_results"
 
-    dataset_id: int = Field(foreign_key="predictions.id", primary_key=True)
+    analysis_id: int = Field(foreign_key="analyses.id", primary_key=True)
     time: datetime = Field(primary_key=True)
     value: float
 
-    dataset: Optional[PredictionDataset] = Relationship(back_populates="predictions")
+    dataset: Optional[Analysis] = Relationship(back_populates="predictions")
