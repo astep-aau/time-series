@@ -90,6 +90,7 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 [tool.polylith.bricks]
 "bases/time_series/api" = "time_series/api"
 "bases/time_series/outlier_detection_api" = "time_series/outlier_detection_api"
+"bases/time_series/forecasting_api" = "time_series/forecasting_api"
 "components/time_series/database" = "time_series/database"
 "components/time_series/dataset_service" = "time_series/dataset_service"
 "components/time_series/forecasting" = "time_series/forecasting"
