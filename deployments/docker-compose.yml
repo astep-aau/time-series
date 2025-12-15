@@ -2,25 +2,39 @@ services:
   db:
     image: postgres:16
     env_file:
-      - .env
+      - ../.env
     environment:
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASS}
-      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DATABASE__USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE__PASSWORD}
+      POSTGRES_DB: ${DATABASE__NAME}
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 
-  outlier_detection:
+  api:
     build:
-      context: .
-      dockerfile: projects/outlier_detection/Containerfile
+      context: ..
+      dockerfile: projects/api/Containerfile
     env_file:
-      - .env
+      - ../.env
     environment:
       # if your code uses DATABASE_URL too, keep it:
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      DATABASE_URL: postgresql://${DATABASE__USERNAME}:${DATABASE__PASSWORD}@${DATABASE__HOST}:${DATABASE__PORT}/${DATABASE__NAME}
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  outlier_detection:
+    build:
+      context: ..
+      dockerfile: projects/outlier_detection_api/Containerfile
+    env_file:
+      - ../.env
+    environment:
+      # if your code uses DATABASE_URL too, keep it:
+      DATABASE_URL: postgresql://${DATABASE__USERNAME}:${DATABASE__PASSWORD}@${DATABASE__HOST}:${DATABASE__PORT}/${DATABASE__NAME}
     depends_on:
       - db
     ports:
@@ -28,16 +42,16 @@ services:
 
   forecasting:
     build:
-      context: .
+      context: ..
       dockerfile: projects/forecasting/Containerfile
     env_file:
-      - .env
+      - ../.env
     environment:
-      DATABASE_URL: postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}
+      DATABASE_URL: postgresql://${DATABASE__USERNAME}:${DATABASE__PASSWORD}@${DATABASE__HOST}:${DATABASE__PORT}/${DATABASE__NAME}
     depends_on:
       - db
     ports:
-      - "8000:8000"
+      - "8002:8000"
 
 volumes:
   pgdata:
