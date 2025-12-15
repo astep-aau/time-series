@@ -14,7 +14,7 @@ insert_final_newline = true
 [*.{json,toml,yml,yaml}]
 indent_size = 2
 
-[weights/*]
+[weights/**]
 charset = unset
 end_of_line = unset
 insert_final_newline = false
