@@ -242,8 +242,9 @@ class AnomalyRepository:
             self.session.delete(anomaly)
 
 
-            session.commit()
-            return count
+            self.session.flush()
+        return count
+
 
 
 class PredictionRepository:
