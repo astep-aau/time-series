@@ -15,7 +15,7 @@ COPY ../../components ./components
 COPY ../../projects ./projects
 
 # Install the project itself
-RUN uv build --package forecasting
+RUN uv build --package forecasting_api
 
 # --- Runtime Stage ---
 FROM python:3.13-slim AS runtime

@@ -19,11 +19,11 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.alter_column("analyses", "model", new_column_name="detection_method")
+    op.alter_column("analyses", "model", new_column_name="detection_method", schema="timeseries")
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.alter_column("analyses", "detection_method", new_column_name="model")
+    op.alter_column("analyses", "detection_method", new_column_name="model", schema="timeseries")
     # ### end Alembic commands ###

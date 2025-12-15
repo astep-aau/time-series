@@ -10,7 +10,7 @@ resolution-markers = [
 [manifest]
 members = [
     "api",
-    "forecasting",
+    "forecasting-api",
     "outlier-detection-api",
     "time-series",
 ]
@@ -494,9 +494,9 @@ wheels = [
 ]
 
 [[package]]
-name = "forecasting"
+name = "forecasting-api"
 version = "0.1.0"
-source = { editable = "projects/forecasting" }
+source = { editable = "projects/forecasting_api" }
 dependencies = [
     { name = "fastapi" },
     { name = "fastapi-pagination" },

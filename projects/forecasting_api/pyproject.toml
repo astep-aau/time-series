@@ -1,5 +1,5 @@
 [project]
-name = "forecasting"
+name = "forecasting_api"
 version = "0.1.0"
 dependencies = [
     "fastapi>0",
@@ -21,8 +21,8 @@ dev = [
 ]
 
 [tool.poe.tasks]
-container-build = "podman build -t forecasting:latest -f Containerfile ../.."
-container-run = "podman run -it --name forecasting forecasting:latest -p 8000:8000"
+container-build = "podman build -t forecasting_api:latest -f Containerfile ../.."
+container-run = "podman run -it --name forecasting_api forecasting_api:latest -p 8000:8000"
 
 # serve = "uvicorn --reload time_series.forecasting.main:app"
 

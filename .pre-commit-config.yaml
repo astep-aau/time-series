@@ -1,47 +1,49 @@
+# See https://pre-commit.com for more information
 default_language_version:
   python: python3
 fail_fast: false
 
 repos:
-  # Ruff: format + lint
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.8
-    hooks:
-      - id: ruff
-        args: ["--fix"]
-      - id: ruff-format
-
-  # EditorConfig checker
-  - repo: https://github.com/editorconfig-checker/editorconfig-checker.python
-    rev: 3.6.0
-    hooks:
-      - id: editorconfig-checker
-
-  # Poly check (local project tool)
   - repo: local
     hooks:
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format
+        language: system
+        types: [python]
+
+      - id: ruff-lint
+        name: ruff lint
+        entry: ruff check
+        language: system
+        types: [python]
+        args: [--fix]
+
+      - id: editorconfig-checker
+        name: editorconfig-checker
+        entry: ec
+        language: system
+        types: [text]
+
       - id: poly-check
         name: poly-check
         entry: poly check
-        language: python
-        additional_dependencies:
-          - polylith-cli>=1.35.0
+        language: system
+        types: [python]
         pass_filenames: false
 
-  # Mypy
-  - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.0
-    hooks:
       - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types: [python]
         stages: [pre-push]
 
-  # Pytest (run tests before push)
-  - repo: local
-    hooks:
       - id: pytest
         name: pytest
         entry: pytest
-        language: python
+        language: system
+        types: [python]
         pass_filenames: false
-        args: ["test"]
+        args: [test]
         stages: [pre-push]

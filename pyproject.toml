@@ -78,7 +78,7 @@ all = [{ref="format"}, {ref="lint"}, {ref="editorcheck"}, {ref="polycheck"}, {re
 
 api = "poe -C projects/api"
 outlier_detection_api = "poe -C projects/outlier_detection_api"
-forecasting = "poe -C projects/forecasting"
+forecasting_api = "poe -C projects/forecasting_api"
 
 
 [tool.hatch.metadata]
