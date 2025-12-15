@@ -9,7 +9,8 @@ TIMESTEPS = 24
 
 
 def load_model_and_scalers(
-    model_path="../../weights/lstm_energy_weather_model.keras", scaler_path="../../weights/scalers.pkl"
+    model_path="../../weights/forecasting/lstm_energy_weather_model.keras",
+    scaler_path="../../weights/forecasting/scalers.pkl",
 ):
     model = load_model(model_path)
     with open(scaler_path, "rb") as f:
