@@ -1,5 +1,4 @@
-
-from .engine import engine
+from .engine import get_engine
 from .models import Anomaly, AnomalyType, Datapoint, Dataset, Prediction
 from .repository import (
     AnalysisRepository,
@@ -8,7 +7,7 @@ from .repository import (
     DatasetRepository,
     PredictionRepository,
 )
->>>>>>> bc99dbf (fix: Added classes to __init__.py and added basic error handling)
+from .unit_of_work import UnitOfWork
 
 __all__ = [
     "Dataset",
@@ -21,9 +20,6 @@ __all__ = [
     "Anomaly",
     "AnalysisRepository",
     "UnitOfWork",
-    "PredictionDataset",
-    "PredictionDatapoint",
-    "PredictionResult",
     "Prediction",
     "PredictionRepository",
 ]

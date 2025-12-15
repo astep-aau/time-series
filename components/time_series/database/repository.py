@@ -3,8 +3,6 @@ from typing import List, Optional
 
 from sqlmodel import Session, col, select
 
-
-from .engine import engine as default_engine
 from .models import (
     Analysis,
     Anomaly,
@@ -13,7 +11,6 @@ from .models import (
     Dataset,
     Prediction,
 )
-
 
 
 class DatasetRepository:
@@ -241,63 +238,43 @@ class AnomalyRepository:
         for anomaly in anomalies:
             self.session.delete(anomaly)
 
-
             self.session.flush()
         return count
-
 
 
 class PredictionRepository:
     """Repository for prediction result operations"""
 
-    def __init__(self, engine=None):
-        self.engine = engine or default_engine
+    def __init__(self, session: Session):
+        self.session = session
 
     def create(self, analysis_id: int, time: datetime, value: float) -> Prediction:
-        with Session(self.engine) as session:
-            prediction = Prediction(analysis_id=analysis_id, time=time, value=value)
-            session.add(prediction)
-            session.commit()
-            session.refresh(prediction)
-            return prediction
+        prediction = Prediction(analysis_id=analysis_id, time=time, value=value)
+        self.session.add(prediction)
+        self.session.commit()
+        self.session.refresh(prediction)
+        return prediction
 
     def bulk_create(self, predictions: List[dict]) -> int:
-        with Session(self.engine) as session:
-            for pred in predictions:
-                session.add(Prediction(**pred))
-            session.commit()
-            return len(predictions)
+        for pred in predictions:
+            self.session.add(Prediction(**pred))
+        self.session.commit()
+        return len(predictions)
 
     def get_by_analysis(self, analysis_id: int) -> List[Prediction]:
-        with Session(self.engine) as session:
-            stmt = select(Prediction).where(Prediction.analysis_id == analysis_id).order_by(col(Prediction.time))
-            return list(session.exec(stmt).all())
+        stmt = select(Prediction).where(Prediction.analysis_id == analysis_id).order_by(col(Prediction.time))
+        return list(self.session.exec(stmt).all())
 
     def delete_by_analysis(self, analysis_id: int) -> int:
-        with Session(self.engine) as session:
-            stmt = select(Prediction).where(Prediction.analysis_id == analysis_id)
-            preds = session.exec(stmt).all()
-            count = len(preds)
+        stmt = select(Prediction).where(Prediction.analysis_id == analysis_id)
+        preds = self.session.exec(stmt).all()
+        count = len(preds)
 
-            for pred in preds:
-                session.delete(pred)
-            session.commit()
-            return count
+        for pred in preds:
+            self.session.delete(pred)
+        self.session.commit()
+        return count
 
-    def get_by_dataset(self, dataset_id: int) -> List[PredictionResult]:
-        with Session(self.engine) as session:
-            statement = (
-                select(PredictionResult)
-                .where(PredictionResult.dataset_id == dataset_id)
-                .order_by(col(PredictionResult.time))
-            )
-            return list(session.exec(statement).all())
-
-    def delete(self, dataset_id: int) -> bool:
-        with Session(self.engine) as session:
-            dataset = session.get(PredictionDataset, dataset_id)
-            if dataset:
-                session.delete(dataset)
-                session.commit()
-                return True
-            return False
+    def get_by_dataset(self, dataset_id: int) -> List[Prediction]:
+        statement = select(Prediction).where(Analysis.dataset_id == dataset_id).order_by(col(Prediction.time))
+        return list(self.session.exec(statement).all())

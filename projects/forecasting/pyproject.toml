@@ -9,7 +9,9 @@ dependencies = [
     "python-multipart>0",
     "numpy>0",
     "python-weather>0",
-    "tensorflow>0"
+    "tensorflow>0",
+    "pydantic-settings>0",
+    "loguru>0",
 ]
 
 [dependency-groups]
@@ -41,3 +43,5 @@ packages = ["time_series"]
 "../../components/time_series/database" = "time_series/database"
 "../../components/time_series/forecast" = "time_series/forecast"
 "../../bases/time_series/outlier_detection" = "time_series/outlier_detection"
+"../../components/time_series/settings" = "time_series/settings"
+"../../components/time_series/uvicorn_runner" = "time_series/uvicorn_runner"

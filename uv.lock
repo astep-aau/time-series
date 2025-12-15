@@ -500,7 +500,9 @@ source = { editable = "projects/forecasting" }
 dependencies = [
     { name = "fastapi" },
     { name = "fastapi-pagination" },
+    { name = "loguru" },
     { name = "numpy" },
+    { name = "pydantic-settings" },
     { name = "python-multipart" },
     { name = "python-weather" },
     { name = "sqlmodel" },
@@ -517,7 +519,9 @@ dev = [
 requires-dist = [
     { name = "fastapi", specifier = ">0" },
     { name = "fastapi-pagination", specifier = ">0" },
+    { name = "loguru", specifier = ">0" },
     { name = "numpy", specifier = ">0" },
+    { name = "pydantic-settings", specifier = ">0" },
     { name = "python-multipart", specifier = ">0" },
     { name = "python-weather", specifier = ">0" },
     { name = "sqlmodel", specifier = ">0" },

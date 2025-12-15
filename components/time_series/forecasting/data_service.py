@@ -30,7 +30,7 @@ class forecastingService:
 
         assert analysis.id is not None
         for i, value in enumerate(prediction):
-            self.uow.predictions.create(
+            self.uow.prediction.create(
                 analysis_id=analysis.id,
                 time=base_time + timedelta(seconds=i),  # unique timestamp per prediction
                 value=float(value),
@@ -52,7 +52,7 @@ class forecastingService:
 
         for analysis in analyses:
             assert analysis.id is not None
-            preds = self.uow.predictions.get_by_analysis(analysis.id)
+            preds = self.uow.prediction.get_by_analysis(analysis.id)
 
             results.append(
                 {

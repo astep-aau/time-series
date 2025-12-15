@@ -2,7 +2,13 @@ import logging
 
 from sqlmodel import Session
 
-from .repository import AnalysisRepository, AnomalyRepository, DatapointRepository, DatasetRepository
+from .repository import (
+    AnalysisRepository,
+    AnomalyRepository,
+    DatapointRepository,
+    DatasetRepository,
+    PredictionRepository,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -14,6 +20,7 @@ class UnitOfWork:
         self.datapoints: DatapointRepository = DatapointRepository(self._session)
         self.analyses: AnalysisRepository = AnalysisRepository(self._session)
         self.anomalies: AnomalyRepository = AnomalyRepository(self._session)
+        self.prediction: PredictionRepository = PredictionRepository(self._session)
 
     def __enter__(self):
         return self
