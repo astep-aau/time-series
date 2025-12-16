@@ -17,8 +17,6 @@ services:
       context: ..
       dockerfile: projects/api/Containerfile
     env_file: ".env"
-    # environment:
-    #   DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
     depends_on:
       - db
     ports:
@@ -29,8 +27,6 @@ services:
       context: ..
       dockerfile: projects/outlier_detection_api/Containerfile
     env_file: ".env"
-    # environment:
-    #   DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
     depends_on:
       - db
     ports:
@@ -41,8 +37,6 @@ services:
       context: ..
       dockerfile: projects/forecasting_api/Containerfile
     env_file: ".env"
-    # environment:
-    #   DATABASE_URL: postgresql://${DATABASE_USERNAME}:${DATABASE_PASSWORD}@${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_NAME}
     depends_on:
       - db
     ports:
