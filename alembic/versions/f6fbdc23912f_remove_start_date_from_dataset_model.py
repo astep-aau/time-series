@@ -22,7 +22,7 @@ depends_on: Union[str, Sequence[str], None] = None
 
 def upgrade() -> None:
     """Upgrade schema."""
-    op.drop_column("datasets", "start_date")
+    op.drop_column("datasets", "start_date", schema="timeseries")
     # ### end Alembic commands ###
 
 
@@ -31,7 +31,8 @@ def downgrade() -> None:
     op.add_column(
         "datasets",
         sa.Column("start_date", postgresql.TIMESTAMP(), autoincrement=False, nullable=True),
+        schema="timeseries",
     )
-    op.execute("UPDATE datasets SET start_date = '1970-01-01 00:00:00'")
-    op.alter_column("datasets", "start_date", nullable=False)
+    op.execute("UPDATE timeseries.datasets SET start_date = '1970-01-01 00:00:00'")
+    op.alter_column("datasets", "start_date", nullable=False, schema="timeseries")
     # ### end Alembic commands ###

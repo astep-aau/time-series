@@ -1,0 +1,46 @@
+services:
+  db:
+    image: postgres:16
+    env_file:
+      - path: .env
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: projects/api/Containerfile
+    env_file: ".env"
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+
+  outlier_detection:
+    build:
+      context: ..
+      dockerfile: projects/outlier_detection_api/Containerfile
+    env_file: ".env"
+    depends_on:
+      - db
+    ports:
+      - "8001:8000"
+
+  forecasting:
+    build:
+      context: ..
+      dockerfile: projects/forecasting_api/Containerfile
+    env_file: ".env"
+    depends_on:
+      - db
+    ports:
+      - "8002:8000"
+
+volumes:
+  pgdata:
