@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/{analysis_id}")
-async def get_anomalous_ranges_endpoint(
+async def get_anomalous_ranges(
     analysis_id: int,
     service: OverviewService = Depends(get_overview_service),
 ) -> RangesPage[dict]:
@@ -20,7 +20,7 @@ async def get_anomalous_ranges_endpoint(
 
 
 @router.post("/{dataset_id}/analyses")
-async def create_analysis_endpoint(
+async def post_analysis(
     dataset_id: int,
     session: Session = Depends(get_session),
     name: str = Query(description="Name of the analysis"),

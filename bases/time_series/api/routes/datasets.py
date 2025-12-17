@@ -19,14 +19,25 @@ def get_datasets(
     return {"datasets": service.get_all_datasets()}
 
 
-@router.post("/")
-async def create_dataset_endpoint(
+@router.post(
+    "/",
+    openapi_extra={
+        "requestBody": {
+            "content": {
+                "text/csv": {
+                    "example": "unix_time,values\n1761122229,0.019685\n1761122230,0.204010\n1761122230,0.204010\n"
+                }
+            },
+        }
+    },
+)
+async def post_dataset(
     request: Request,
     name: str = Query(description="Name of the dataset"),
     description: str = Query(None, description="Description of the dataset"),
     session: Session = Depends(get_session),
 ) -> dict:
-    csv_content = await request.body()
+    csv_content: bytes = await request.body()
     csv_text = csv_content.decode("utf-8") if csv_content else ""
 
     try:
@@ -39,17 +50,25 @@ async def create_dataset_endpoint(
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/{dataset_id}")
-def get_dataset_endpoint(
+@router.put(
+    "/",
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {
+                "text/csv": {
+                    "example": "unix_time,values\n1761122229,0.019685\n1761122230,0.204010\n1761122230,0.204010\n"
+                }
+            },
+        }
+    },
+)
+async def put_dataset(
     dataset_id: int,
-    service: OverviewService = Depends(get_overview_service),
+    request: Request,
+    session: Session = Depends(get_session),
 ) -> dict:
-    return service.get_dataset_by_id(dataset_id)
-
-
-@router.put("/{dataset_id}")
-async def add_dataset_data(request: Request, dataset_id: int, session: Session = Depends(get_session)) -> dict:
-    csv_content = await request.body()
+    csv_content: bytes = await request.body()
     csv_text = csv_content.decode("utf-8") if csv_content else ""
 
     try:
@@ -62,8 +81,16 @@ async def add_dataset_data(request: Request, dataset_id: int, session: Session =
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.get("/{dataset_id}")
+def get_dataset(
+    dataset_id: int,
+    service: OverviewService = Depends(get_overview_service),
+) -> dict:
+    return service.get_dataset_by_id(dataset_id)
+
+
 @router.delete("/{dataset_id}")
-def delete_dataset_endpoint(dataset_id: int, session: Session = Depends(get_session)) -> dict:
+def delete_dataset(dataset_id: int, session: Session = Depends(get_session)) -> dict:
     try:
         with UnitOfWork(session) as uow:
             success = uow.datasets.delete(dataset_id)
@@ -76,7 +103,7 @@ def delete_dataset_endpoint(dataset_id: int, session: Session = Depends(get_sess
 
 
 @router.get("/{dataset_id}/records")
-async def get_records_endpoint(
+async def get_records(
     dataset_id: int,
     start: Optional[datetime] = Query(None, description="Start datetime for filtering records"),
     end: Optional[datetime] = Query(None, description="End datetime for filtering records"),
@@ -87,7 +114,7 @@ async def get_records_endpoint(
 
 
 @router.get("/{dataset_id}/analyses")
-async def get_analyses_for_dataset_endpoint(
+async def get_dataset_analyses(
     dataset_id: int,
     service: OverviewService = Depends(get_overview_service),
 ) -> dict:
