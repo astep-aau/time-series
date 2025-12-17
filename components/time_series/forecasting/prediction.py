@@ -6,7 +6,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from time_series.forecasting.weather import get_todays_temp
 
-TIMESTEPS = 24
+TIMESTEPS = 48
 
 
 def load_model_and_scalers():
@@ -59,7 +59,7 @@ def predict(user_data: list, city: str) -> list:
     else:
         data = np.c_[data, np.full(len(user_data), avg_temp)]
     model, scalers = load_model_and_scalers()
-    last_raw = data[0:24]
+    last_raw = data[0:48]
     last_scaled = scale_last(last_raw, scalers)
     energy_pred_12, temp_pred_12 = recursive_predict(last_scaled, model, scalers)
     return energy_pred_12.tolist()
