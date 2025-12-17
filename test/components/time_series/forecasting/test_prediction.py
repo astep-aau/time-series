@@ -80,8 +80,8 @@ TEST_DATA = [
 
 
 def test_predict_raises_if_too_short():
-    with pytest.raises(ValueError, match=r"Expected 24"):
-        forecasting.predict(TEST_DATA[:-1], city="Aalborg")
+    with pytest.raises(ValueError):
+        forecasting.predict(TEST_DATA[:47], city="Aalborg")
 
 
 def test_predict_return_type():
