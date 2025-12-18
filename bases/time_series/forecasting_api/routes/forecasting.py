@@ -2,6 +2,7 @@ from typing import Annotated, Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
 from fastapi_pagination import Page, paginate
+from loguru import logger
 from time_series.forecasting.data_service import forecastingService
 from time_series.forecasting.prediction import predict
 from time_series.forecasting_api.helpers import get_forecasting_service
@@ -50,6 +51,7 @@ def add_prediction(
             },
         )
     except Exception:
+        logger.exception("predict() crashed")
         raise HTTPException(
             status_code=500,
             detail={"code": "PREDICTION_FAILED", "message": "Prediction failed unexpectedly."},

@@ -12,7 +12,7 @@ TIMESTEPS = 48
 def load_model_and_scalers():
     base = files("time_series.forecasting.assets")
 
-    model_path = base / "lstm_energy_weather_model.keras"
+    model_path = base / "lstm_energy_model.keras"
     scaler_path = base / "scalers.pkl"
 
     model = load_model(model_path)

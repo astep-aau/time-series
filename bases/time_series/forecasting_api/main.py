@@ -3,6 +3,9 @@ from fastapi.responses import RedirectResponse
 from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
 from time_series.forecasting_api.routes import forecasting
+from time_series.uvicorn_runner.logging_utils import setup_logging
+
+setup_logging()
 
 app = FastAPI(
     title="forecasting",
