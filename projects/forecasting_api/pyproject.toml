@@ -38,7 +38,7 @@ packages = ["time_series"]
 # This section is needed for building
 
 [tool.polylith.bricks]
-"../../components/time_series/dataset_service" = "time_series/dataset_service"
+"../../components/time_series/services" = "time_series/services"
 "../../components/time_series/database" = "time_series/database"
 "../../components/time_series/forecasting" = "time_series/forecasting"
 "../../bases/time_series/forecasting_api" = "time_series/forecasting_api"
