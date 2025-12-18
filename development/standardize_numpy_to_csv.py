@@ -7,21 +7,27 @@ import pandas as pd
 
 
 def standardize_numpy_to_csv(
-    numpy_file_path: str = "name.npy",
+    data_path: str = "csvs/nasa/data/data",
+    numpy_filename: str = "name.npy",
     output_filename: str = "standardized_output.csv",
     sample_rate_seconds: int = 60,
     column_index: int = 0,
 ) -> Union[str, None]:
     try:
-        if not os.path.exists(numpy_file_path):
-            print(f"ERROR: NumPy file not found at path: {numpy_file_path}. Please check file location.")
+        train_path = f"{data_path}/train/{numpy_filename}"
+        test_path = f"{data_path}/test/{numpy_filename}"
+        if not os.path.exists(train_path):
+            print(f"ERROR: NumPy file not found at path: {train_path!r}. Please check file location.")
             return None
 
-        data_matrix = np.load(numpy_file_path)
+        train_matrix = np.load(train_path)[:, column_index]
+        test_matrix = np.load(test_path)[:, column_index]
 
-        values = data_matrix[:, column_index].astype(np.float64)
+        values = np.concatenate([train_matrix.astype(np.float64), test_matrix.astype(np.float64)])
 
         num_samples = len(values)
+        print(f"Size of combined array: {num_samples}")
+        print(f"Test-percentage: {test_matrix.shape[0] / num_samples}")
 
         start_epoch = int(datetime(2025, 1, 1).timestamp())
 
@@ -38,24 +44,25 @@ def standardize_numpy_to_csv(
 
         return output_filename
 
-    except IndexError:
-        cols = data_matrix.shape[1] if "data_matrix" in locals() else "N/A"
-        print(f"ERROR: Column index {column_index} is out of bounds. Dataset has {cols} columns.")
-        return None
     except Exception as e:
         print(f"An unexpected ERROR occurred during CSV export: {e}")
         return None
 
 
 if __name__ == "__main__":
-    input_npy = "file_name.npy"
+    nasa_data_path = "csvs/nasa/data/data"
+    numpy_file = "S-1.npy"
 
-    output_csv = "output_file_name.csv"
+    output_csv = "S-1.csv"
 
-    print(f"Attempting to standardize data from '{input_npy}'...")
+    print(f"Attempting to standardize data from '{numpy_file}'...")
 
     result_path = standardize_numpy_to_csv(
-        numpy_file_path=input_npy, output_filename=output_csv, sample_rate_seconds=60, column_index=0
+        data_path=nasa_data_path,
+        numpy_filename=numpy_file,
+        output_filename=output_csv,
+        sample_rate_seconds=60,
+        column_index=0,
     )
 
     if result_path:
