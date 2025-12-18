@@ -1,7 +1,6 @@
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query
-from fastapi_pagination import Page, paginate
 from loguru import logger
 from time_series.forecasting.data_service import forecastingService
 from time_series.forecasting.prediction import predict
@@ -10,15 +9,12 @@ from time_series.forecasting_api.helpers import get_forecasting_service
 router = APIRouter()
 
 
-@router.get("/{dataset_id}", response_model=Page[dict[str, Any]] | dict[str, Any])
+@router.get("/{dataset_id}")
 def get_all_predictions(
     dataset_id: int,
     service: forecastingService = Depends(get_forecasting_service),
 ):
-    result = service.get_all_predictions(dataset_id)
-    if isinstance(result, dict):
-        return result
-    return paginate(result)
+    return service.get_all_predictions(dataset_id)
 
 
 @router.post("/{dataset_id}", status_code=201)
@@ -54,7 +50,10 @@ def add_prediction(
         logger.exception("predict() crashed")
         raise HTTPException(
             status_code=500,
-            detail={"code": "PREDICTION_FAILED", "message": "Prediction failed unexpectedly."},
+            detail={
+                "code": "PREDICTION_FAILED",
+                "message": "Prediction failed unexpectedly.",
+            },
         )
 
     return service.add_prediction(model_name=model_name, dataset_id=dataset_id, prediction=predictions)

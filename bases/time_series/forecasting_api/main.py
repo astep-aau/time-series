@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
-from fastapi_pagination import add_pagination
 from starlette.middleware.cors import CORSMiddleware
 from time_series.forecasting_api.routes import forecasting
 from time_series.uvicorn_runner.logging_utils import setup_logging
@@ -35,5 +34,3 @@ def health_check():
 
 
 app.include_router(forecasting.router, prefix="/forecasting", tags=["forecasting"])
-
-add_pagination(app)
