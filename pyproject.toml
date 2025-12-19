@@ -18,6 +18,7 @@ dependencies = [
     "datasets>=4.4.1",
     "matplotlib>=3.10.7",
     "loguru>=0.7.3",
+    "scikit-learn>=1.8.0",
 ]
 
 [tool.uv]
@@ -96,6 +97,7 @@ dev-mode-dirs = ["components", "bases", "development", "."]
 "components/time_series/forecasting" = "time_series/forecasting"
 "components/time_series/settings" = "time_series/settings"
 "components/time_series/uvicorn_runner" = "time_series/uvicorn_runner"
+"components/time_series/outlier_detection" = "time_series/outlier_detection"
 
 
 

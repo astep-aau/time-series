@@ -3,6 +3,13 @@ name = "outlier_detection_api"
 version = "1.0.0"
 dependencies = [
     "fastapi>0",
+    "sqlmodel>0",
+    "numpy>0",
+    "sqlalchemy>0",
+    "torch>0",
+    "torchvision>0",
+    "scikit-learn>0",
+    "psycopg2-binary>0",
     "pydantic>0",
     "pydantic-settings>0",
     "uvicorn>0",
@@ -35,3 +42,5 @@ packages = ["time_series"]
 "../../bases/time_series/outlier_detection_api" = "time_series/outlier_detection_api"
 "../../components/time_series/settings" = "time_series/settings"
 "../../components/time_series/uvicorn_runner" = "time_series/uvicorn_runner"
+"../../components/time_series/database" = "time_series/database"
+"../../components/time_series/outlier_detection" = "time_series/outlier_detection"
