@@ -15,6 +15,7 @@ EMBEDDING_DIM = 4
 SEED = randint(0, 100_000)
 EPOCHS = 100
 TEST_PERCENT = 0.2
+THRESHOLD = 3.5
 
 device = torch.accelerator.current_accelerator().type if torch.accelerator.is_available() else "cpu"  # type: ignore
 generator = torch.Generator().manual_seed(SEED)
@@ -200,4 +201,10 @@ print(f"Output: {predictions.shape}: {predictions}")
 
 plt.plot(sample.reshape(-1).numpy(force=True))
 plt.plot(predictions.reshape(-1).numpy(force=True))
+plt.show()
+
+reconstruction_error = torch.abs(sample - predictions)
+anomalies = reconstruction_error > THRESHOLD
+plt.plot(reconstruction_error.reshape(-1).numpy(force=True))
+plt.plot(anomalies.reshape(-1).numpy(force=True))
 plt.show()
