@@ -243,8 +243,6 @@ class AnomalyRepository:
 
 
 class PredictionRepository:
-    """Repository for prediction result operations"""
-
     def __init__(self, session: Session):
         self.session = session
 
